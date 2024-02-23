@@ -1,0 +1,142 @@
+      ******************************************************************
+      * NOM. DESCR: ESTE PROGRAMA TRATA TABLA INDEXADA -DIAS SEMANA-   *
+      * OBJETIVE:   ESTE PROGRAMA COGE LA FECHA Y LA HORA DEL SISTEMA  *
+      *             DEFINE LA TABLA -CON VALORES EN WORKING-           *
+      *                  -TABLA CARGADA EN WORKING-                    *
+      *                  -TABLA INDEXADA CON BUSQUEDA SECUENCIAL       *
+      *                  -SEARCH-                                      *
+      *             Y LOS MUESTRA EN UN REPORT/SPOOL                   *
+      *             TAMBIEN SE RECOGERA UN DIA A BUSCAR QUE            *
+      *             SE BUSCARA EN LA TABLA YA CARGADA Y                *
+      *             SI LO ENCUENTRA MOSTRARA EL DIA BUSCADO.           *
+      *             SINO LO ENCUENTRA MOSTARA 'DIA NO ENCONTRADO'.     *
+      * TYPE:       BATCH REPORT                                       *
+      * INPUTS:     DATOS DEL SISTEMA (FECHA Y HORA)                   *
+      *             DATOS DE SYSIN (TITULO, DIA A BUSCAR)              *
+      * OUTPUTS:    REPORT                                             *
+      ******************************************************************
+
+
+      ******************************************************************
+      *                    IDENTIFIATION DIVISION                      *
+      ******************************************************************
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB32C304.
+       AUTHOR. LUIS.
+       DATE-WRITTEN. ENERO, 2024.
+       DATE-COMPILED.
+
+      ******************************************************************
+      *                    ENVIRONMENT DIVISION                        *
+      ******************************************************************
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+
+       SPECIAL-NAMES.
+            DECIMAL-POINT IS COMMA.
+
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+
+      ******************************************************************
+      *                    DATA DIVISION                         *
+      ******************************************************************
+       DATA DIVISION.
+       FILE SECTION.
+
+       WORKING-STORAGE SECTION.
+       01 WORK-AREA.
+          05  AUX-PROGRAMA               PIC X(8)    VALUE 'PB32C304'.
+          05  AUX-FECHA.
+              10  AUX-ANYO               PIC 9(4)    VALUE ZERO.
+              10  AUX-MES                PIC 9(2)    VALUE ZERO.
+              10  AUX-DIA                PIC 9(2)    VALUE ZERO.
+
+          05  AUX-HOR.
+              10  AUX-HORA               PIC 9(2)    VALUE ZERO.
+              10  AUX-MINUTO             PIC 9(2)    VALUE ZERO.
+              10  AUX-SEGUNDO            PIC 9(2)    VALUE ZERO.
+              10  AUX-MILI               PIC 9(2)    VALUE ZERO.
+          05  AUX-INDICE                 PIC 9(1)    VALUE ZERO.
+          05  AUX-TITULO                 PIC X(10)   VALUE SPACES.
+          05  AUX-DIAS                   PIC X(10)   VALUE SPACES.
+          05  AUX-IND                    PIC 9(1)    VALUE 1.
+          05  CTE-1                      PIC 9(1)    VALUE 1.
+          05  AUX-BUSCAR                 PIC X(10)   VALUE SPACES.
+          05  AUX-ENCONTRADO             PIC 9(1)    VALUE ZERO.
+          05  DIAS.
+              10  DIA1                   PIC X(10)   VALUE 'LUNES'.
+              10  DIA2                   PIC X(10)   VALUE 'MARTES'.
+              10  DIA3                   PIC X(10)   VALUE 'MIERCOLES'.
+              10  DIA4                   PIC X(10)   VALUE 'JUEVES'.
+              10  DIA5                   PIC X(10)   VALUE 'VIERNES'.
+              10  DIA6                   PIC X(10)   VALUE 'SABADO'.
+              10  DIA7                   PIC X(10)   VALUE 'DOMINGO'.
+      ******************************************************************
+      *                    TABLES (ARRAY)                              *
+      ******************************************************************
+          05  TBL-DIA-SEMANA             REDEFINES DIAS PIC X(10)
+                                                   OCCURS 7 TIMES
+                                                 INDEXED BY NDX-I.
+      ******************************************************************
+      *                    PROCEDURE DIVISION                          *
+      ******************************************************************
+       PROCEDURE DIVISION.
+
+      ******************************************************************
+      *                    1000-MAINLINE                               *
+      *----------------------------------------------------------------*
+      * ESTE PARRAFO CONTROLA LA ESTRUCTURA DEL PROCESO DEL PROGRAMA   *
+      ******************************************************************
+       1000-MAIN.
+           PERFORM 2000-INICIAL
+              THRU 2000-INICIAL-EXIT.
+
+           PERFORM 3000-PROCESO
+              THRU 3000-PROCESO-EXIT.
+
+           PERFORM 8000-FINAL
+              THRU 8000-FINAL-EXIT.
+
+           STOP RUN.
+
+      ******************************************************************
+      *                    2000-INICIO.                                *
+      ******************************************************************
+       2000-INICIAL.
+           ACCEPT AUX-FECHA FROM DATE YYYYMMDD.
+           ACCEPT AUX-HOR   FROM TIME.
+           ACCEPT AUX-TITULO FROM SYSIN.
+           ACCEPT AUX-BUSCAR FROM SYSIN.
+           DISPLAY 'COMIENZA EL PROGRAMA ' AUX-PROGRAMA.
+           DISPLAY ' FECHA: ' AUX-ANYO '-' AUX-MES '-' AUX-DIA
+                   ' HORA: '  AUX-HORA '-' AUX-MINUTO ':' AUX-SEGUNDO
+                   ':' AUX-MILI.
+           DISPLAY '******* ' AUX-TITULO ' ******* '.
+       2000-INICIAL-EXIT.
+           EXIT.
+
+      ******************************************************************
+      *                    3000-PROCESO                                *
+      ******************************************************************
+       3000-PROCESO.
+           SET NDX-I TO CTE-1
+           SEARCH TBL-DIA-SEMANA
+                 AT END
+                    DISPLAY ' DIA NO ENCONTRADO ' AUX-BUSCAR
+                 WHEN TBL-DIA-SEMANA(NDX-I) EQUAL TO AUX-BUSCAR
+                    SET AUX-IND TO NDX-I
+                    DISPLAY ' DIA ENCONTRADO' AUX-BUSCAR                IND
+                            ' EN LA POSICION ' AUX-IND
+           END-SEARCH.
+       3000-PROCESO-EXIT.
+           EXIT.
+
+      ******************************************************************
+      *                    8000-FINAL                                  *
+      ******************************************************************
+       8000-FINAL.
+           DISPLAY 'FIN DEL PROGRAMA: ' AUX-PROGRAMA.
+
+       8000-FINAL-EXIT.
+           EXIT.

@@ -1,0 +1,109 @@
+      ******************************************************************
+      * NOM. DESCR: PROGRAMA BATCH PARA MOSTRAR FECHA Y HORA.          *
+      * OBJETIVE:   ESTE PROGRAMA COGE LA FECHA Y LA HORA DEL SISTEMA  *
+      *             Y LO MUESTRA EN UN REPORT (SPOOL)                  *
+      * PRIMER PROGRAMA DB2. RECOGE EMPLEADO POR SYSIN Y MUESTRA       *
+      *        SUS DATOS CON DISPLAY POR SYSOUT                        *
+      * TYPE:       BATCH REPORT                                       *
+      * INPUTS:     DATOS DEL SISTEMA (FECHA Y HORA)                   *
+      * OUTPUTS:    REPORTS/SYSPRINT  (FECHA Y HORA FORMATEADA)        *
+      ******************************************************************
+      *    MI PRIMER PROGRAMA DB2                                      *
+      ******************************************************************
+
+      ******************************************************************
+      *                    IDENTIFIATION DIVISION                      *
+      ******************************************************************
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB32D400.
+       AUTHOR. LUIS.
+       DATE-WRITTEN. ENERO, 2024.
+       DATE-COMPILED.
+
+      ******************************************************************
+      *                    ENVIRONMENT DIVISION                        *
+      ******************************************************************
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+
+       SPECIAL-NAMES.
+            DECIMAL-POINT IS COMMA.
+
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+
+      ******************************************************************
+      *                    DATA DIVISION                         *
+      ******************************************************************
+       DATA DIVISION.
+       FILE SECTION.
+
+       WORKING-STORAGE SECTION.
+       01 WORK-AREA.
+          05  AUX-PROGRAMA               PIC X(8)    VALUE 'PB32C03'.
+          05  AUX-FECHA.
+              10  AUX-ANYO               PIC 9(4)    VALUE ZERO.
+              10  AUX-MES                PIC 9(2)    VALUE ZERO.
+              10  AUX-DIA                PIC 9(2)    VALUE ZERO.
+
+          05  AUX-HOR.
+              10  AUX-HORA               PIC 9(2)    VALUE ZERO.
+              10  AUX-MINUTO             PIC 9(2)    VALUE ZERO.
+              10  AUX-SEGUNDO            PIC 9(2)    VALUE ZERO.
+              10  AUX-MILI               PIC 9(2)    VALUE ZERO.
+
+      ******************************************************************
+      *                    PROCEDURE DIVISION                          *
+      ******************************************************************
+
+       PROCEDURE DIVISION.
+
+      ******************************************************************
+      *                    1000-MAINLINE                               *
+      *----------------------------------------------------------------*
+      * ESTE PARRAFO CONTROLA LA ESTRUCTURA DEL PROCESO DEL PROGRAMA   *
+      ******************************************************************
+       1000-MAIN.
+           PERFORM 2000-INICIAL
+              THRU 2000-INICIAL-EXIT.
+
+           PERFORM 3000-PROCESO
+              THRU 3000-PROCESO-EXIT.
+
+           PERFORM 8000-FINAL
+              THRU 8000-FINAL-EXIT.
+
+           STOP RUN.
+
+      ******************************************************************
+      *                    2000-INICIO.                                *
+      ******************************************************************
+       2000-INICIAL.
+           ACCEPT AUX-FECHA FROM DATE YYYYMMDD.
+           ACCEPT AUX-HOR   FROM TIME.
+
+           DISPLAY 'COMIENZA EL PROGRAMA ' AUX-PROGRAMA.
+           DISPLAY ' FECHA: ' AUX-ANYO '-' AUX-MES '-' AUX-DIA
+                   ' HORA: '  AUX-HORA ':' AUX-MINUTO ':' AUX-SEGUNDO
+                   ':' AUX-MILI.
+
+       2000-INICIAL-EXIT.
+           EXIT.
+
+      ******************************************************************
+      *                    3000-PROCESO                                *
+      ******************************************************************
+       3000-PROCESO.
+           DISPLAY ' PASA POR EL PARRAFO 3000-PROCESS.'.
+
+       3000-PROCESO-EXIT.
+           EXIT.
+
+      ******************************************************************
+      *                    8000-FINAL                                  *
+      ******************************************************************
+       8000-FINAL.
+           DISPLAY 'FIN DEL PROGRAMA: ' AUX-PROGRAMA.
+
+       8000-FINAL-EXIT.
+           EXIT.

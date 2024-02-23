@@ -1,0 +1,4 @@
+--SELECT * FROM DEPART;                                                 00010001
+CREATE UNIQUE INDEX ICODDEP32                                           00070003
+ON DEPART(DEP_CODIGO);                                                  00080001
+COMMIT;                                                                 00090001

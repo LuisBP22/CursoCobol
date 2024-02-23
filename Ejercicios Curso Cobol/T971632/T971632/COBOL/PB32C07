@@ -1,0 +1,116 @@
+      ******************************************************************
+      * NOM. DESCR: PROGRAMA BATCH PARA MOSTRAR FECHA Y HORA.          *
+      * OBJETIVE:   ESTE PROGRAMA COGE LA FECHA Y HORA DEL SISTEMA     *
+      *             Y LO MUESTRA EN UN REPORT (SPOOL)                  *
+      * TYPE:       BATCH REPORT                                       *
+      * INPUTS:     DATOS DEL SISTEMA (FECHA Y HORA)                   *
+      * OUTPUTS:    REPORTS/SYSPRINT  (FECHA Y HORA FORMATEADA)        *
+      ******************************************************************
+
+      ******************************************************************
+      *                    IDENTIFIATION DIVISION                      *
+      ******************************************************************
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB32C07.
+       AUTHOR. LUIS.
+       DATE-WRITTEN. ENERO, 2024.
+       DATE-COMPILED.
+
+      ******************************************************************
+      *                    ENVIRONMENT DIVISION                        *
+      ******************************************************************
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+
+       SPECIAL-NAMES.
+            DECIMAL-POINT IS COMMA.
+
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+
+      ******************************************************************
+      *                    DATA DIVISION                         *
+      ******************************************************************
+       DATA DIVISION.
+       FILE SECTION.
+
+       WORKING-STORAGE SECTION.
+       01 WORK-AREA.
+          05  AUX-PROGRAMA               PIC X(8)    VALUE 'PB32C07'.
+          05  AUX-FECHA.
+              10  AUX-ANYO               PIC 9(4)    VALUE ZERO.
+              10  AUX-MES                PIC 9(2)    VALUE ZERO.
+              10  AUX-DIA                PIC 9(2)    VALUE ZERO.
+
+          05  AUX-HOR.
+              10  AUX-HORA               PIC 9(2)    VALUE ZERO.
+              10  AUX-MINUTO             PIC 9(2)    VALUE ZERO.
+              10  AUX-SEGUNDO            PIC 9(2)    VALUE ZERO.
+              10  AUX-MILI               PIC 9(2)    VALUE ZERO.
+          05  AUX-RES                    PIC 9(2)    VALUE ZERO.
+          05  AUX-INDICE                 PIC 9(2)    VALUE ZERO.
+          05  CTR-I                      PIC 9(2)    VALUE 0.
+          05  CTE-1                      PIC 9(1)    VALUE 1.
+          05  CTE-10                     PIC 9(2)    VALUE 10.
+      ******************************************************************
+      *                    PROCEDURE DIVISION                          *
+      ******************************************************************
+       PROCEDURE DIVISION.
+
+      ******************************************************************
+      *                    1000-MAINLINE                               *
+      *----------------------------------------------------------------*
+      * ESTE PARRAFO CONTROLA LA ESTRUCTURA DEL PROCESO DEL PROGRAMA   *
+      ******************************************************************
+       1000-MAIN.
+           PERFORM 2000-INICIAL
+              THRU 2000-INICIAL-EXIT.
+           PERFORM 3000-PROCESO
+              THRU 3000-PROCESO-EXIT.
+           PERFORM 8000-FINAL
+              THRU 8000-FINAL-EXIT.
+
+           STOP RUN.
+
+      ******************************************************************
+      *                    2000-INICIO.                                *
+      ******************************************************************
+       2000-INICIAL.
+           ACCEPT AUX-FECHA FROM DATE YYYYMMDD.
+           ACCEPT AUX-HOR   FROM TIME.
+
+           DISPLAY 'COMIENZA EL PROGRAMA ' AUX-PROGRAMA.
+           DISPLAY ' FECHA: ' AUX-ANYO '-' AUX-MES '-' AUX-DIA
+                   ' HORA: '  AUX-HORA ':' AUX-MINUTO ':' AUX-SEGUNDO
+                   ':' AUX-MILI.
+
+       2000-INICIAL-EXIT.
+           EXIT.
+
+      ******************************************************************
+      *                    3000-PROCESO                                *
+      ******************************************************************
+       3000-PROCESO.
+           PERFORM 3100-MULTI
+             THRU  3100-MULTI-EXIT
+            UNTIL CTR-I GREATER THAN 9.
+       3000-PROCESO-EXIT.
+           EXIT.
+
+       3100-MULTI.
+              ADD 1 TO CTR-I.
+           PERFORM VARYING AUX-INDICE FROM CTE-1 BY CTE-1
+             UNTIL AUX-INDICE GREATER THAN CTE-10
+              MULTIPLY CTR-I BY AUX-INDICE GIVING AUX-RES
+              DISPLAY CTR-I ' X ' AUX-INDICE ' = ' AUX-RES
+           END-PERFORM.
+       3100-MULTI-EXIT.
+           EXIT.
+      ******************************************************************
+      *                    8000-FINAL                                  *
+      ******************************************************************
+       8000-FINAL.
+           DISPLAY 'FIN DEL PROGRAMA: ' AUX-PROGRAMA.
+
+       8000-FINAL-EXIT.
+           EXIT.

@@ -1,0 +1,406 @@
+      ******************************************************************
+      * NOM. DESCR: MANTENIMIENTO DE LA TABLA DB2 -EMPLEADO-           *
+      * OBJETIVE:   ESTE PROGRAMA PROCESA FICHERO SECUENCIAL DE        *
+      *             MOVIMIENTOS Y ACTUALIZA LA TABLA DB2 -EMPLEADO-.   *
+      *             POR IGUALDAD DE CLAVE, ESTO ES, UNA SOLA FILA CADA *
+      *             VEZ.                                               *
+      *             SI WS-IN-TIPO = 1 --> INSERTAR 1 FILA EN LA TABLA. *
+      *             SI WS-IN-TIPO = 2 --> BORRAR 1 FILA EN LA TABLA.   *
+      *             SI WS-IN-TIPO = 3 --> ACTUALIZAR COLUMNA -1 FILA-  *
+      *             SI WS-IN-TIPO = 4 --> RECUPERAR 1 FILA DE LA TABLA.*
+      *             SI WS-IN-TIPO = 5 --> CASO DE MAS DE 1 FILA.       *
+      *             OTRO              --> AVISAR INCIDENCIA.           *
+      *             (COPYBOOK/INCLUDE INCEMPLE)                        *
+      * TYPE:       BATCH/DB2 UPDATE                                   *
+      * INPUTS:     FICHERO DE MOVIMIENTOS: MOVIM                      *
+      *                     T9716.X.MOVIM111 TODO INSERTS             *
+      *                     T9716.X.MOVIM222 TODO DELETES             *
+      *                     T9716.X.MOVIM333 TODO UPDATES             *
+      *                     T9716.X.MOVIM444 TODO SELECTS             *
+      *                     T9716.X.MOVIM555 TODO SELECTS +1 FILA     *
+      *                     T9716.X.MOVIM456 TODO 456                 *
+      * I-O:        TABLA DB2         -EMPLEADOS-                      *
+      * OUTPUTS:    REPORT/SYSPRINT                                    *
+      ******************************************************************
+
+      ******************************************************************
+      *                    IDENTIFIATION DIVISION                      *
+      ******************************************************************
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB32D401.
+       AUTHOR. LUIS.
+       DATE-WRITTEN. ENERO, 2024.
+       DATE-COMPILED.
+
+      ******************************************************************
+      *                    ENVIRONMENT DIVISION                        *
+      ******************************************************************
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+
+       SPECIAL-NAMES.
+            DECIMAL-POINT IS COMMA.
+
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+
+      ******************************************************************
+      *                    INPUT FILE                                  *
+      *-----------------------------------------------------------------
+      * FICHERO DE EMPLEADO  *
+      ******************************************************************
+           SELECT MOVIM
+             ASSIGN TO ENTJCL
+             ORGANIZATION IS SEQUENTIAL
+             ACCESS MODE IS SEQUENTIAL
+             FILE STATUS IS FS-MOVIM.
+
+      ******************************************************************
+      *                    DATA DIVISION                          ******
+      ******************************************************************
+       DATA DIVISION.
+       FILE SECTION.
+       FD MOVIM
+              LABEL RECORDS ARE STANDARD
+              RECORDING MODE IS F
+              BLOCK CONTAINS 0 RECORDS
+              RECORD CONTAINS 100 CHARACTERS
+              DATA RECORD IS REG-MOVIM.
+       01 REG-MOVIM                      PIC X(100).
+
+      ******************************************************************
+      *                     WORKING-STORAGE SECTION                    *
+      ******************************************************************
+       WORKING-STORAGE SECTION.
+       01 WORK-AREA.
+      ******************************************************************
+      *                     RECORD LAYOUT                              *
+      *----------------------------------------------------------------*
+          05 WS-IN-REG-MOVIM.
+             10 WS-IN-CODIGO             PIC 9(5)    VALUE ZEROES.
+             10 WS-IN-NOMBRE             PIC X(20)   VALUE SPACES.
+             10 WS-IN-CPOSTAL            PIC 9(5)    VALUE ZEROES.
+             10 WS-IN-CALLE              PIC X(20)   VALUE SPACES.
+             10 WS-IN-DEPART             PIC 9(4)    VALUE ZEROS.
+             10 WS-IN-SALARIO            PIC S9(07)V99 COMP-3
+                                                     VALUE ZEROS.
+             10 WS-IN-DNI                PIC 9(08)   VALUE ZEROS.
+             10 FILLER                   PIC X(12)   VALUE SPACES.
+             10 WS-IN-TIPO               PIC 9(03)   VALUE ZEROS.
+                88 GRABAR                            VALUE 1.
+                88 BORRAR                            VALUE 2.
+                88 ACTUALIZAR                        VALUE 3.
+                88 LEER-CLAVE                        VALUE 4.
+                88 VARIAS-FILAS                      VALUE 5.
+                88 OTRO                              VALUE 0 6 THRU 999.
+             10 FILLER                   PIC X(18)   VALUE SPACES.
+      ******************************************************************
+      *                     FILE STATUS                                *
+      ******************************************************************
+          05 FS-MOVIM                    PIC 99      VALUE ZEROS.
+      ******************************************************************
+      *                     FLAGS AND SWITCHES                         *
+      ******************************************************************
+          05 END-OF-FILE-SWITCH          PIC X       VALUE 'N'.
+             88  END-OF-FILE                         VALUE 'Y'.
+             88  NOT-END-OF-FILE                     VALUE 'N'.
+
+          05 EMPTY-FILE-SWITCH           PIC X       VALUE 'N'.
+             88 EMPTY-FILE                           VALUE 'Y'.
+
+          05 ERRORES-SWITCH              PIC X       VALUE 'N'.
+             88 ERRORES                              VALUE 'Y'.
+
+      ******************************************************************
+      *                     COUNTERS AND ACCUMULATORS                  *
+      ******************************************************************
+          05  CTR-LEIDOS                 PIC 9(9)    VALUE ZEROS.
+          05  CTR-GRABADOS               PIC 9(9)    VALUE ZERO.
+          05  CTR-ELIMINADOS             PIC 9(9)    VALUE ZERO.
+          05  CTR-ACTUALIZADOS           PIC 9(9)    VALUE ZERO.
+          05  CTR-SELECTS                PIC 9(9)    VALUE ZERO.
+          05  CTR-INCIDENCIAS            PIC 9(9)    VALUE ZERO.
+          05  CTR-SELECTS-VARIOS         PIC 9(9)    VALUE ZERO.
+      ******************************************************************
+      *                     CONSTANTS AND LITERALS                     *
+      ******************************************************************
+          05  CTE-1                      PIC 9       VALUE 1.
+          05  CTE-10                     PIC 9(2)    VALUE 10.
+          05  CTE-1001                   PIC 9(4)    VALUE 1001.
+
+      ******************************************************************
+      *                     VARIABLES NORMALES                         *
+      ******************************************************************
+          05  AUX-PROGRAMA               PIC X(8)    VALUE 'PB32D411'.
+          05  AUX-FECHA.
+              10  AUX-ANYO               PIC 9(4)    VALUE ZERO.
+              10  AUX-MES                PIC 9(2)    VALUE ZERO.
+              10  AUX-DIA                PIC 9(2)    VALUE ZERO.
+
+          05  AUX-HOR.
+              10  AUX-HORA               PIC 9(2)    VALUE ZERO.
+              10  AUX-MINUTO             PIC 9(2)    VALUE ZERO.
+              10  AUX-SEGUNDO            PIC 9(2)    VALUE ZERO.
+              10  AUX-MILI               PIC 9(2)    VALUE ZERO.
+          05  EDI-SQLCODE                PIC +ZZZZZZZZ9 VALUE ZERO.
+      ******************************************************************
+      *                    SQL AREA                                    *
+      ******************************************************************
+           EXEC SQL
+              INCLUDE SQLCA
+           END-EXEC.
+
+           EXEC SQL
+              INCLUDE IEMPLE32
+           END-EXEC.
+      *ME FALTA EL CONTROL DE ERRORES DEL 3400 AL 3600
+      ******************************************************************
+      *                    PROCEDURE DIVISION                          *
+      ******************************************************************
+       PROCEDURE DIVISION.
+
+      ******************************************************************
+      *                    1000-MAINLINE                               *
+      *----------------------------------------------------------------*
+      * ESTE PARRAFO CONTROLA LA ESTRUCTURA DEL PROCESO DEL PROGRAMA   *
+      ******************************************************************
+       1000-MAIN.
+           PERFORM 2000-INICIAL
+              THRU 2000-INICIAL-EXIT.
+
+           PERFORM 3000-PROCESO
+              THRU 3000-PROCESO-EXIT
+             UNTIL END-OF-FILE
+                OR ERRORES.
+           PERFORM 8000-FINAL
+              THRU 8000-FINAL-EXIT.
+
+           STOP RUN.
+
+      ******************************************************************
+      *                    2000-INICIO.                                *
+      ******************************************************************
+       2000-INICIAL.
+           ACCEPT AUX-FECHA FROM DATE YYYYMMDD.
+           ACCEPT AUX-HOR   FROM TIME.
+
+           DISPLAY 'COMIENZA EL PROGRAMA ' AUX-PROGRAMA.
+           DISPLAY ' FECHA: ' AUX-ANYO '-' AUX-MES '-' AUX-DIA
+                   ' HORA: '  AUX-HORA ':' AUX-MINUTO ':' AUX-SEGUNDO
+                   ':' AUX-MILI.
+           SET NOT-END-OF-FILE TO TRUE.
+           OPEN INPUT MOVIM.
+
+           IF FS-MOVIM NOT EQUAL TO ZEROS
+              DISPLAY 'ERROR AL ABRIR EMPLEADO. FS= ' FS-MOVIM
+              SET ERRORES TO TRUE
+           END-IF.
+
+           PERFORM 9000-LEER
+              THRU 9000-LEER-EXIT.
+
+           IF END-OF-FILE
+              SET EMPTY-FILE TO TRUE
+           END-IF.
+
+       2000-INICIAL-EXIT.
+           EXIT.
+
+      ******************************************************************
+      *                    3000-PROCESO                                *
+      ******************************************************************
+       3000-PROCESO.
+           DISPLAY WS-IN-NOMBRE ' ' WS-IN-DEPART ' ' WS-IN-SALARIO.
+
+           INITIALIZE DCLEMPLEADO.
+
+           EVALUATE WS-IN-TIPO
+             WHEN 1
+               PERFORM 3100-GRABAR
+                  THRU 3100-GRABAR-EXIT
+             WHEN 2
+               PERFORM 3200-BORRAR
+                  THRU 3200-BORRAR-EXIT
+             WHEN 3
+               PERFORM 3300-ACTUALIZAR
+                  THRU 3300-ACTUALIZAR-EXIT
+             WHEN 4
+               PERFORM 3400-LEER-CLAVE
+                  THRU 3400-LEER-CLAVE-EXIT
+             WHEN 5
+               PERFORM 3500-VARIAS-FILAS
+                  THRU 3500-VARIAS-FILAS-EXIT
+             WHEN OTHER
+               PERFORM 3600-OTRO
+                  THRU 3600-OTRO-EXIT
+           END-EVALUATE.
+           PERFORM 9000-LEER
+              THRU 9000-LEER-EXIT.
+
+       3000-PROCESO-EXIT.
+           EXIT.
+       3100-GRABAR.
+            MOVE WS-IN-NOMBRE  TO EMP-NOMBRE  OF DCLEMPLEADO.
+            MOVE WS-IN-CODIGO  TO EMP-CODIGO  OF DCLEMPLEADO.
+            MOVE WS-IN-DEPART  TO EMP-DEPART  OF DCLEMPLEADO.
+            MOVE WS-IN-SALARIO TO EMP-SALARIO OF DCLEMPLEADO.
+           EXEC SQL
+             INSERT INTO EMPLEADO
+                      (EMP_CODIGO,EMP_NOMBRE, EMP_DEPART, EMP_SALARIO)
+                    VALUES
+                      (:DCLEMPLEADO.EMP-CODIGO,
+                       :DCLEMPLEADO.EMP-NOMBRE,
+                       :DCLEMPLEADO.EMP-DEPART,
+                       :DCLEMPLEADO.EMP-SALARIO)
+           END-EXEC.
+           MOVE SQLCODE TO EDI-SQLCODE.
+           DISPLAY EDI-SQLCODE.
+           EVALUATE SQLCODE
+              WHEN ZERO
+                ADD CTE-1 TO CTR-GRABADOS
+              WHEN -803
+                DISPLAY 'CLAVE DUPLICADA ' WS-IN-CODIGO
+                ADD CTE-1 TO CTR-INCIDENCIAS
+              WHEN OTHER
+                DISPLAY 'ERROR AL GRABAR. SQLCODE= ' EDI-SQLCODE
+                SET ERRORES TO TRUE
+           END-EVALUATE.
+       3100-GRABAR-EXIT.
+           EXIT.
+       3200-BORRAR.
+            MOVE WS-IN-CODIGO  TO EMP-CODIGO  OF DCLEMPLEADO.
+           EXEC SQL
+             DELETE FROM EMPLEADO
+               WHERE EMP_CODIGO=:DCLEMPLEADO.EMP-CODIGO
+           END-EXEC.
+           MOVE SQLCODE TO EDI-SQLCODE.
+           DISPLAY EDI-SQLCODE.
+           EVALUATE SQLCODE
+              WHEN ZERO
+                ADD CTE-1 TO CTR-ELIMINADOS
+              WHEN +100
+                DISPLAY 'CLAVE A BORRAR NO EXISTE ' WS-IN-CODIGO
+                ADD CTE-1 TO CTR-INCIDENCIAS
+              WHEN OTHER
+                DISPLAY 'ERROR AL BORRAR. SQLCODE= ' EDI-SQLCODE
+           END-EVALUATE.
+       3200-BORRAR-EXIT.
+           EXIT.
+       3300-ACTUALIZAR.
+            MOVE WS-IN-NOMBRE  TO EMP-NOMBRE  OF DCLEMPLEADO.
+            MOVE WS-IN-CODIGO  TO EMP-CODIGO  OF DCLEMPLEADO.
+            MOVE WS-IN-DEPART  TO EMP-DEPART  OF DCLEMPLEADO.
+            MOVE WS-IN-SALARIO TO EMP-SALARIO OF DCLEMPLEADO.
+           EXEC SQL
+             UPDATE EMPLEADO
+                 SET EMP_NOMBRE=:DCLEMPLEADO.EMP-NOMBRE,
+                     EMP_DEPART=:DCLEMPLEADO.EMP-DEPART,
+                     EMP_SALARIO=:DCLEMPLEADO.EMP-SALARIO
+                 WHERE EMP_CODIGO=:DCLEMPLEADO.EMP-CODIGO
+           END-EXEC.
+           MOVE SQLCODE TO EDI-SQLCODE.
+           DISPLAY EDI-SQLCODE.
+           EVALUATE SQLCODE
+              WHEN ZERO
+                ADD CTE-1 TO CTR-ACTUALIZADOS
+              WHEN +100
+                DISPLAY 'CLAVE A ACTUALIZAR NO EXISTE ' WS-IN-CODIGO
+                ADD CTE-1 TO CTR-INCIDENCIAS
+              WHEN OTHER
+                DISPLAY 'ERROR AL ACTUALIZAR. SQLCODE= ' EDI-SQLCODE
+           END-EVALUATE.
+       3300-ACTUALIZAR-EXIT.
+           EXIT.
+       3400-LEER-CLAVE.
+             MOVE WS-IN-CODIGO  TO EMP-CODIGO  OF DCLEMPLEADO.
+           EXEC SQL
+              SELECT EMP_NOMBRE, EMP_DEPART, EMP_SALARIO
+              INTO :DCLEMPLEADO.EMP-NOMBRE,
+                   :DCLEMPLEADO.EMP-DEPART,
+                   :DCLEMPLEADO.EMP-SALARIO
+              FROM EMPLEADO
+              WHERE  EMP_CODIGO=:DCLEMPLEADO.EMP-CODIGO
+           END-EXEC.
+           MOVE SQLCODE TO EDI-SQLCODE.
+           EVALUATE SQLCODE
+              WHEN ZERO
+              DISPLAY 'NOMBE= ' EMP-NOMBRE
+              DISPLAY 'DEPART= ' EMP-DEPART
+              DISPLAY 'SALARIO= ' EMP-SALARIO
+              WHEN +100
+                DISPLAY 'CLAVE A LEER NO EXISTE ' WS-IN-CODIGO
+                ADD CTE-1 TO CTR-INCIDENCIAS
+              WHEN OTHER
+                DISPLAY 'ERROR AL LEER. SQLCODE= ' EDI-SQLCODE
+           END-EVALUATE.
+       3400-LEER-CLAVE-EXIT.
+           EXIT.
+       3500-VARIAS-FILAS.
+           EXEC SQL
+              SELECT EMP_NOMBRE, EMP_DEPART, EMP_SALARIO
+              INTO :DCLEMPLEADO.EMP-NOMBRE,
+                   :DCLEMPLEADO.EMP-DEPART,
+                   :DCLEMPLEADO.EMP-SALARIO
+              FROM EMPLEADO
+              WHERE  EMP_CODIGO>5
+           END-EXEC.
+           MOVE SQLCODE TO EDI-SQLCODE.
+           DISPLAY EDI-SQLCODE.
+           EVALUATE SQLCODE
+              WHEN ZERO
+                DISPLAY 'OK'
+              WHEN -811
+                DISPLAY 'SE ESTA LEYENDO MAS DE UNA FILA '
+                ADD CTE-1 TO CTR-INCIDENCIAS
+              WHEN OTHER
+                DISPLAY 'ERROR AL LEER. SQLCODE= ' EDI-SQLCODE
+           END-EVALUATE.
+       3500-VARIAS-FILAS-EXIT.
+           EXIT.
+       3600-OTRO.
+             DISPLAY 'ERROR, LOS CODIGOS DEBEN SER DEL 1 AL 5'.
+       3600-OTRO-EXIT.
+           EXIT.
+      ******************************************************************
+      *                    8000-FINAL                                  *
+      ******************************************************************
+       8000-FINAL.
+           IF EMPTY-FILE
+              DISPLAY 'FICHERO EMPLEAOD VACIO.'
+           ELSE
+              IF ERRORES
+                 DISPLAY '// ==================//'
+                 DISPLAY '// ------------------//'
+                 DISPLAY '// EJECUCION NO CORRECTA //'
+                 DISPLAY '// ------------------//'
+                 DISPLAY '// ==================//'
+
+                 MOVE CTE-1001 TO RETURN-CODE
+              ELSE
+                 CLOSE MOVIM
+              END-IF
+           END-IF.
+           DISPLAY 'LEIDOS EMPLEADO: ' CTR-LEIDOS.
+           DISPLAY 'GRABADOS: ' CTR-GRABADOS.
+           DISPLAY 'BORRADOS: ' CTR-ELIMINADOS.
+           DISPLAY 'ACTUALIZADOS:' CTR-ACTUALIZADOS.
+           DISPLAY 'INCIDENCIAS: ' CTR-INCIDENCIAS.
+           DISPLAY 'FIN DEL PROGRAMA: ' AUX-PROGRAMA.
+
+       8000-FINAL-EXIT.
+           EXIT.
+      ******************************************************************
+      *                    9000-LEER                                   *
+      *----------------------------------------------------------------*
+      ******************************************************************
+      *                    LECTURA DEL FICHERO                         *
+      ******************************************************************
+        9000-LEER.
+            READ MOVIM INTO WS-IN-REG-MOVIM
+               AT END
+                   SET END-OF-FILE TO TRUE
+               NOT AT END
+                   ADD CTE-1 TO CTR-LEIDOS
+            END-READ.
+        9000-LEER-EXIT.
+            EXIT.

@@ -1,0 +1,221 @@
+000200******************************************************************
+000300* NOM. DESCR: MODULO ALGORITMO CALCULO DIGITOS DE CONTROL        *
+000400* OBJETIVE: ESTE PROGRAMA RECIBE UN NUMERO DE CUENTA Y DEVUELVE  *
+000500*           EL NUMERO GENERANDO LOS DOS DIGITOS DE CONTROL DEL   *
+000600*           MISMO                                                *
+000700* TYPE:     BATCH (MODULE)                                       *
+000800* INPUTS:   LINKAGE SECTION                                      *
+000900* OUTPUTS:  LINKAGE SECTION                                      *
+001000******************************************************************
+001100
+001200******************************************************************
+001300*                  IDENTIFICATION DIVISION                       *
+001400******************************************************************
+001500 IDENTIFICATION DIVISION.
+001600 PROGRAM-ID. PB0YM04
+001700 AUTHOR. (MI-NOMBRE).
+001800 DATE-WRITTEN. MAYO, 2019.
+001900 DATE-COMPILED.
+002000
+002100******************************************************************
+002200*                  ENVIRONMET DIVISION                           *
+002300******************************************************************
+002400 ENVIRONMENT DIVISION.
+002500 CONFIGURATION SECTION.
+002600
+002700 SOURCE-COMPUTER. IBM-370-158.
+002800 OBJECT-COMPUTER. IBM-370-158.
+002900
+003000 INPUT-OUTPUT SECTION.
+003100 FILE-CONTROL.
+003200
+003300******************************************************************
+003400*                  DATA DIVISION                                 *
+003500******************************************************************
+003600 DATA DIVISION.
+003700 FILE SECTION.
+003800
+003900******************************************************************
+004000*                  WORKING-STORAGE SECTION                       *
+004100******************************************************************
+004200 WORKING-STORAGE SECTION.
+004300 01  WS-WORK-AREA.
+004400
+004500******************************************************************
+004600*                  COUNTER AND ACCUMULATORS                      *
+004700******************************************************************
+004800     05  ACC-ACCUMULATORS.
+004900         10  ACC-TOTAL               PIC 9(9)    VALUE ZEROS.
+005000
+005100******************************************************************
+005200*                  CONSTANT AND LITERALS                         *
+005300******************************************************************
+005500     05  CTE-NO                      PIC X(2)    VALUE 'NO'.
+005600******************************************************************
+005700*                  SCRATCH AREAS                                 *
+005800******************************************************************
+005900     05  AUX-COCIENTE                PIC 9(9)    VALUE ZEROS.
+006000     05  AUX-RESTO                   PIC 9(2)    VALUE ZEROS.
+006100     05  AUX-DG                      PIC 9(2)    VALUE ZEROS.
+006200
+006300******************************************************************
+006400*                    COMUNICATION AREA                           *
+006500******************************************************************
+006600     05  COM-AREA.
+006700         10  COM-CCC.
+006800             15 B1                   PIC 9       VALUE ZEROS.
+006900             15 B2                   PIC 9       VALUE ZEROS.
+007000             15 B3                   PIC 9       VALUE ZEROS.
+007100             15 B4                   PIC 9       VALUE ZEROS.
+007200             15 S1                   PIC 9       VALUE ZEROS.
+007300             15 S2                   PIC 9       VALUE ZEROS.
+007400             15 S3                   PIC 9       VALUE ZEROS.
+007500             15 S4                   PIC 9       VALUE ZEROS.
+007600             15 DG1                  PIC 9       VALUE ZEROS.
+007700             15 DG2                  PIC 9       VALUE ZEROS.
+007800             15 C1                   PIC 9       VALUE ZEROS.
+007900             15 C2                   PIC 9       VALUE ZEROS.
+008000             15 C3                   PIC 9       VALUE ZEROS.
+008100             15 C4                   PIC 9       VALUE ZEROS.
+008200             15 C5                   PIC 9       VALUE ZEROS.
+008300             15 C6                   PIC 9       VALUE ZEROS.
+008400             15 C7                   PIC 9       VALUE ZEROS.
+008500             15 C8                   PIC 9       VALUE ZEROS.
+008600             15 C9                   PIC 9       VALUE ZEROS.
+008700             15 C10                  PIC 9       VALUE ZEROS.
+008800         10  COM-OK                  PIC X(2)    VALUE SPACES.
+008900
+009000******************************************************************
+009100*                    LINKAGE SECTION                             *
+009200******************************************************************
+009300 LINKAGE SECTION.
+009400 01  LK-DATOS                        PIC X(22).
+009500
+009600******************************************************************
+009700*                 PROCEDURE DIVISION                             *
+009800******************************************************************
+009900 PROCEDURE DIVISION USING LK-DATOS.
+010000
+010100******************************************************************
+010200*                 1000-MAINLINE                                  *
+010300*----------------------------------------------------------------*
+010400* ESTE PARRAFO CONTROLA LA ESTRUCTURA DEL PROCESO DEL PROGRAMA   *
+010500******************************************************************
+010600 1000-MAINLINE.
+010700     PERFORM 2000-HOUSEKEEPING
+010800        THRU 2000-HOUSEKEEPING-EXIT.
+010900
+011000     PERFORM 3000-PROCESS
+011100        THRU 3000-PROCESS-EXIT.
+011200
+011300     PERFORM 8000-WRAP-UP
+011400        THRU 8000-WRAP-UP-EXIT.
+011500
+011600     GOBACK.
+011700
+011800******************************************************************
+011900*                 2000-HOUSEKEEPING                              *
+012000*----------------------------------------------------------------*
+012100* ESTE PARRAFO AVISA DEL INICIO DEL MODULO                       *
+012200******************************************************************
+012300 2000-HOUSEKEEPING.
+012400     DISPLAY 'COMIENZA EL MODULO PB0YM04'.
+012500
+012600     MOVE LK-DATOS TO COM-AREA.
+012700
+012800 2000-HOUSEKEEPING-EXIT.
+012900     EXIT.
+013000
+013100******************************************************************
+013200*                 3000-PROCESS                                   *
+013300*----------------------------------------------------------------*
+013400* ESTE PARRAFO CALCULA LOS DIGITOS DE CONTROL DE UN NUMERO DE    *
+013500* CUENTA QUE LE LLEGA DEL PROGRAMA PRINCIPAL                     *
+013600******************************************************************
+013700 3000-PROCESS.
+013800     PERFORM 3100-CALCULAR-DG1
+013900        THRU 3100-CALCULAR-DG1-EXIT.
+014000
+014100     PERFORM 3200-CALCULAR-DG2
+014200        THRU 3200-CALCULAR-DG2-EXIT.
+014300
+014400 3000-PROCESS-EXIT.
+014500     EXIT.
+014600
+014700
+014800******************************************************************
+014900*                 3100-CALCULAR-DG1                              *
+015000*----------------------------------------------------------------*
+015100* ESTE PARRAFO CALCULA EL PRIMER DIGITO DE CONTROL               *
+015200******************************************************************
+015300 3100-CALCULAR-DG1.
+015400     COMPUTE ACC-TOTAL = (B1 * 4) + (B2 * 8) + (B3 * 5)
+015500         + (B4 * 10) + (S1 * 9) + (S2 * 7) + (S3 * 3)
+015600         + (S4 * 6)
+015700     END-COMPUTE.
+015800
+015900     DIVIDE ACC-TOTAL BY 11
+016000         GIVING AUX-COCIENTE
+016100         REMAINDER AUX-RESTO
+016200         ON SIZE ERROR
+016300             MOVE CTE-NO TO COM-OK
+016400     END-DIVIDE.
+016500
+016600     SUBTRACT AUX-RESTO FROM 11 GIVING AUX-DG.
+016700
+016800     EVALUATE AUX-DG
+016900          WHEN 10
+017000              MOVE 1 TO DG1
+017100          WHEN 11
+017200              MOVE 0 TO DG1
+017300          WHEN OTHER
+017400              MOVE AUX-DG TO DG1
+017500     END-EVALUATE.
+017600
+017700 3100-CALCULAR-DG1-EXIT.
+017800     EXIT.
+017900
+018000******************************************************************
+018100*                 3200-CALCULAR-DG2                              *
+018200*----------------------------------------------------------------*
+018300* ESTE PARRAFO CALCULA EL SEGUNDO DIGITO DE CONTROL              *
+018400******************************************************************
+018500 3200-CALCULAR-DG2.
+018600     COMPUTE ACC-TOTAL = (C1 * 1) + (C2 * 2) + (C3 * 4)
+018700         + (C4 * 8) + (C5 * 5) + (C6 * 10) + (C7 * 9)
+018800         + (C8 * 7) + (C9 * 3) + (C10 * 6)
+018900     END-COMPUTE.
+019000
+019100     DIVIDE ACC-TOTAL BY 11
+019200         GIVING AUX-COCIENTE
+019300         REMAINDER AUX-RESTO
+019400         ON SIZE ERROR
+019500             MOVE CTE-NO TO COM-OK
+019600     END-DIVIDE.
+019700
+019800     SUBTRACT AUX-RESTO FROM 11 GIVING AUX-DG.
+019900
+020000     EVALUATE AUX-DG
+020100          WHEN 10
+020200              MOVE 1 TO DG2
+020300          WHEN 11
+020400              MOVE 0 TO DG2
+020500          WHEN OTHER
+020600              MOVE AUX-DG TO DG2
+020700     END-EVALUATE.
+020800
+020900 3200-CALCULAR-DG2-EXIT.
+021000     EXIT.
+021100
+021200******************************************************************
+021300*                 8000-WRAP-UP                                   *
+021400*----------------------------------------------------------------*
+021500* ESTE PARRAFO AVISA DEL FIN DEL PROGRAMA                        *
+021600******************************************************************
+021700 8000-WRAP-UP.
+021800     MOVE COM-AREA TO LK-DATOS.
+021900
+022000     DISPLAY 'FIN DEL MODULO PB0YM04'.
+022100
+022200 8000-WRAP-UP-EXIT.
+022300     EXIT.

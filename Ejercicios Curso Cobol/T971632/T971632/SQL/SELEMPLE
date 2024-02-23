@@ -1,0 +1,32 @@
+-- *** JOIN TRADICIONAL CON WHERE                                       00001003
+-- SELECT EMP_CODIGO, EMP_NOMBRE, DEP_DESCRIP FROM EMPLEADO, DEPART     00010003
+--     WHERE EMPLEADO.EMP_DEPART=DEPART.DEP_CODIGO;                     00020003
+-- *** JOIN INNER JOIN                                                  00030003
+-- SELECT EMP_CODIGO, EMP_NOMBRE, DEP_DESCRIP FROM EMPLEADO             00040011
+-- INNER JOIN DEPART                                                    00050011
+-- ON EMPLEADO.EMP_DEPART=DEPART.DEP_CODIGO;                            00060011
+--NO ES NECESARIO EL EMPLEADO.EMP_CODIGO POR QUE SE LLAMAN DIFERENTE    00070003
+--PERO NORMALMENTE SE LLAMAN IGUAL Y SE TIENE QUE PONER EL PUNTO.       00080003
+--YO LO DEJE CON EL PUNTO POR COSTUMBRE.                                00090003
+                                                                        00091007
+-- ***JOIN LEFT OUTER JOIN                                              00092007
+-- SELECT EMP_CODIGO, EMP_NOMBRE, EMP_DEPART, DEP_DESCRIP FROM EMPLEADO 00100010
+-- LEFT OUTER JOIN DEPART                                               00110010
+-- ON EMPLEADO.EMP_DEPART=DEPART.DEP_CODIGO;                            00120010
+                                                                        00130009
+-- ***JOIN RIGHT OUTER JOIN                                             00140009
+-- SELECT EMP_CODIGO, EMP_NOMBRE, DEP_CODIGO, DEP_DESCRIP FROM EMPLEADO 00150012
+-- RIGHT OUTER JOIN DEPART                                              00160012
+-- ON EMPLEADO.EMP_DEPART=DEPART.DEP_CODIGO;                            00170012
+                                                                        00180012
+-- ***JOIN FULL OUTER JOIN                                              00190012
+-- SELECT EMP_CODIGO, EMP_NOMBRE, DEP_CODIGO, DEP_DESCRIP FROM EMPLEADO 00200013
+-- FULL OUTER JOIN DEPART                                               00210013
+-- ON EMPLEADO.EMP_DEPART=DEPART.DEP_CODIGO;                            00220013
+                                                                        00230013
+-- ***JOIN FULL OUTER JOIN                                              00240013
+-- SELECT EMP_CODIGO, EMP_NOMBRE, DEP_CODIGO, DEP_DESCRIP FROM EMPLEADO 00250014
+-- FULL OUTER JOIN DEPART                                               00260014
+-- ON EMPLEADO.EMP_DEPART=DEPART.DEP_CODIGO                             00270014
+-- ORDER BY DEP_CODIGO DESC;                                            00280014
+   SELECT * FROM EMPLEADO;                                              00290014

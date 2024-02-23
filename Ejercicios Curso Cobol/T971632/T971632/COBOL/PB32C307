@@ -1,0 +1,221 @@
+      ******************************************************************
+      * NOM. DESCR: ESTE PROGRAMA PROCESA EL FICH.SECUENCIAL -EMPLEADO-*
+      * OBJETIVE:   ESTE PROGRAMA LEE EL FICHERO DE EMPLEADO Y POR CADA*
+      *             REGISTRO LEIDO, MUESTRA LOS VALORES DE SUS CAM-    *
+      *             POS: CODIGO, NOMBRE, CPOSTAL Y CALLE.              *
+      * TYPE:       BATCH REPORT                                       *
+      * INPUTS:     DATOS DEL SISTEMA (FECHA Y HORA)                   *
+      *             DATOS DE SYSIN (TITULO DEL LISTADO)                *
+      *             FICHERO DE ENTRADA SECUENCIAL -EMPLEADO.:          *
+      *             ****T9716.T9716XX.ZENT307.EMPLEADO                 *
+      *                 T9716.X.ZENTRADA.EMPLEADO                      *
+      * OUTPUTS:    REPORTS-SPOOL-                                     *
+      ******************************************************************
+
+      ******************************************************************
+      *                    IDENTIFIATION DIVISION                      *
+      ******************************************************************
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB32C307.
+       AUTHOR. LUIS.
+       DATE-WRITTEN. ENERO, 2024.
+       DATE-COMPILED.
+
+      ******************************************************************
+      *                    ENVIRONMENT DIVISION                        *
+      ******************************************************************
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+
+       SPECIAL-NAMES.
+            DECIMAL-POINT IS COMMA.
+
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+
+      ******************************************************************
+      *                    INPUT FILE                                  *
+      *-----------------------------------------------------------------
+      * FICHERO DE EMPLEADO  *
+      ******************************************************************
+           SELECT EMPLEADO
+             ASSIGN TO ENTJCL
+             ORGANIZATION IS SEQUENTIAL
+             ACCESS MODE IS SEQUENTIAL
+             FILE STATUS IS FS-EMPLEADO.
+
+      ******************************************************************
+      *                    DATA DIVISION                          ******
+      ******************************************************************
+       DATA DIVISION.
+       FILE SECTION.
+       FD EMPLEADO
+              LABEL RECORDS ARE STANDARD
+              RECORDING MODE IS F
+              BLOCK CONTAINS 0 RECORDS
+              RECORD CONTAINS 100 CHARACTERS
+              DATA RECORD IS REG-EMPLEADO.
+       01 REG-EMPLEADO                   PIC X(100).
+
+      ******************************************************************
+      *                     WORKING-STORAGE SECTION                    *
+      ******************************************************************
+       WORKING-STORAGE SECTION.
+       01 WORK-AREA.
+      ******************************************************************
+      *                     RECORD LAYOUT                              *
+      *----------------------------------------------------------------*
+          05 WS-IN-REG-EMPLEADO.
+             10 WS-IN-CODIGO             PIC 9(5)    VALUE ZEROES.
+             10 WS-IN-NOMBRE             PIC X(20)   VALUE SPACES.
+             10 WS-IN-CPOSTAL            PIC 9(5)    VALUE ZEROES.
+             10 WS-IN-CALLE              PIC X(20)   VALUE SPACES.
+             10 FILLER                   PIC X(50)   VALUE SPACES.
+      ******************************************************************
+      *                     FILE STATUS                                *
+      ******************************************************************
+          05 FS-EMPLEADO                 PIC 99      VALUE ZEROS.
+      ******************************************************************
+      *                     FLAGS AND SWITCHES                         *
+      ******************************************************************
+          05 END-OF-FILE-SWITCH          PIC X       VALUE 'N'.
+             88  END-OF-FILE                         VALUE 'Y'.
+             88  NOT-END-OF-FILE                     VALUE 'N'.
+
+          05 EMPTY-FILE-SWITCH           PIC X       VALUE 'N'.
+             88 EMPTY-FILE                           VALUE 'Y'.
+
+          05 ERRORES-SWITCH              PIC X       VALUE 'N'.
+             88 ERRORES                              VALUE 'Y'.
+
+      ******************************************************************
+      *                     COUNTERS AND ACCUMULATORS                  *
+      ******************************************************************
+          05  CTR-LEIDOS                 PIC 9(9)    VALUE ZEROS.
+
+      ******************************************************************
+      *                     CONSTANTS AND LITERALS                     *
+      ******************************************************************
+          05  CTE-1                      PIC 9       VALUE 1.
+          05  CTE-10                     PIC 9(2)    VALUE 10.
+          05  CTE-1001                   PIC 9(4)    VALUE 1001.
+
+      ******************************************************************
+      *                     VARIABLES NORMALES                         *
+      ******************************************************************
+          05  AUX-PROGRAMA               PIC X(8)    VALUE 'PB32C307'.
+          05  AUX-FECHA.
+              10  AUX-ANYO               PIC 9(4)    VALUE ZERO.
+              10  AUX-MES                PIC 9(2)    VALUE ZERO.
+              10  AUX-DIA                PIC 9(2)    VALUE ZERO.
+
+          05  AUX-HOR.
+              10  AUX-HORA               PIC 9(2)    VALUE ZERO.
+              10  AUX-MINUTO             PIC 9(2)    VALUE ZERO.
+              10  AUX-SEGUNDO            PIC 9(2)    VALUE ZERO.
+              10  AUX-MILI               PIC 9(2)    VALUE ZERO.
+
+      ******************************************************************
+      *                    PROCEDURE DIVISION                          *
+      ******************************************************************
+       PROCEDURE DIVISION.
+
+      ******************************************************************
+      *                    1000-MAINLINE                               *
+      *----------------------------------------------------------------*
+      * ESTE PARRAFO CONTROLA LA ESTRUCTURA DEL PROCESO DEL PROGRAMA   *
+      ******************************************************************
+       1000-MAIN.
+           PERFORM 2000-INICIAL
+              THRU 2000-INICIAL-EXIT.
+
+           PERFORM 3000-PROCESO
+              THRU 3000-PROCESO-EXIT
+             UNTIL END-OF-FILE
+                OR ERRORES.
+           PERFORM 8000-FINAL
+              THRU 8000-FINAL-EXIT.
+
+           STOP RUN.
+
+      ******************************************************************
+      *                    2000-INICIO.                                *
+      ******************************************************************
+       2000-INICIAL.
+           ACCEPT AUX-FECHA FROM DATE YYYYMMDD.
+           ACCEPT AUX-HOR   FROM TIME.
+
+           DISPLAY 'COMIENZA EL PROGRAMA ' AUX-PROGRAMA.
+           DISPLAY ' FECHA: ' AUX-ANYO '-' AUX-MES '-' AUX-DIA
+                   ' HORA: '  AUX-HORA ':' AUX-MINUTO ':' AUX-SEGUNDO
+                   ':' AUX-MILI.
+           SET NOT-END-OF-FILE TO TRUE.
+           OPEN INPUT EMPLEADO.
+
+           IF FS-EMPLEADO NOT EQUAL TO ZEROS
+              DISPLAY 'ERROR AL ABRIR EMPLEADO. FS= ' FS-EMPLEADO
+              SET ERRORES TO TRUE
+           END-IF.
+
+           PERFORM 9000-LEER
+              THRU 9000-LEER-EXIT.
+
+           IF END-OF-FILE
+              SET EMPTY-FILE TO TRUE
+           END-IF.
+
+       2000-INICIAL-EXIT.
+           EXIT.
+
+      ******************************************************************
+      *                    3000-PROCESO                                *
+      ******************************************************************
+       3000-PROCESO.
+           DISPLAY ' CODIGO: ' WS-IN-CODIGO 'NOMBRE: ' WS-IN-NOMBRE
+                 ' COD. POSTAL: ' WS-IN-CPOSTAL ' CALLE: ' WS-IN-CALLE.
+
+           PERFORM 9000-LEER
+              THRU 9000-LEER-EXIT.
+
+       3000-PROCESO-EXIT.
+           EXIT.
+
+      ******************************************************************
+      *                    8000-FINAL                                  *
+      ******************************************************************
+       8000-FINAL.
+           IF EMPTY-FILE
+              DISPLAY 'FICHERO EMPLEAOD VACIO.'
+           ELSE
+              IF ERRORES
+                 DISPLAY '// ==================//'
+                 DISPLAY '// ------------------//'
+                 DISPLAY '// EJECUCION NO CORRECTA //'
+                 DISPLAY '// ------------------//'
+                 DISPLAY '// ==================//'
+
+                 MOVE CTE-1001 TO RETURN-CODE
+              ELSE
+                 CLOSE EMPLEADO
+              END-IF
+           END-IF.
+           DISPLAY 'LEIDOS EMPLEADO: ' CTR-LEIDOS.
+           DISPLAY 'FIN DEL PROGRAMA: ' AUX-PROGRAMA.
+
+       8000-FINAL-EXIT.
+           EXIT.
+      ******************************************************************
+      *                    9000-LEER                                   *
+      *----------------------------------------------------------------*
+      ******************************************************************
+      *                    LECTURA DEL FICHERO                         *
+      ******************************************************************
+        9000-LEER.
+            READ EMPLEADO INTO WS-IN-REG-EMPLEADO
+               AT END
+                   SET END-OF-FILE TO TRUE
+               NOT AT END
+                   ADD CTE-1 TO CTR-LEIDOS
+            END-READ.
+        9000-LEER-EXIT.
+            EXIT.

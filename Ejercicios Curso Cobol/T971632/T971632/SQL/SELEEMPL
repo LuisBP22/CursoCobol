@@ -1,0 +1,5 @@
+--SELECT * FROM EMPLEADO;                                               00010001
+SELECT SUM(EMP_SALARIO) AS "TOTAL SUMA",                                00020004
+       EMP_DEPART,                                                      00030006
+COUNT(*) FROM EMPLEADO GROUP BY EMP_DEPART                              00040007
+HAVING COUNT(*)>3;                                                      00050007

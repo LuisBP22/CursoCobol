@@ -1,0 +1,175 @@
+      ******************************************************************
+      * NOM. DESCR: RECUPERACION DATOS DE LA TABLA DB2 -EMPLEADO-      *
+      *                                                                *
+      * OBJETIVE:   EL PROGRAMA RECUPERA "TODOS" LOS EMPLEADOS DEL     *
+      *             DEPARTAMENTO DE LA TABLA EMPLEADO (POR SYSIN)      *
+      *             DATA(COPYBOOK/INCLUDE): INCEMPLE, COPYEMPL.        *
+      * TYPE:       BATCH/DB2 -LECTURA-                                *
+      * INPUTS:     TABLA DB2 EMPLEADO                                 *
+      *             SYSIN (DPTO)                                       *
+      * OUTPUTS:    FICHERO SECUENCIAL FSALIDA                         *
+      *                     T9716.T9716XX.ZSALD402.EMPLEADO            *
+      ******************************************************************
+
+      ******************************************************************
+      *                    IDENTIFIATION DIVISION                      *
+      ******************************************************************
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB32D402.
+       AUTHOR. LUIS.
+       DATE-WRITTEN. ENERO, 2024.
+       DATE-COMPILED.
+
+      ******************************************************************
+      *                    ENVIRONMENT DIVISION                        *
+      ******************************************************************
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+
+       SPECIAL-NAMES.
+            DECIMAL-POINT IS COMMA.
+
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+            SELECT SALIDA
+              ASSIGN TO SALJCL
+              ORGANIZATION IS SEQUENTIAL
+              ACCESS MODE IS SEQUENTIAL
+              FILE STATUS IS FS-SALIDA.
+      ******************************************************************
+      *                    DATA DIVISION                         *
+      ******************************************************************
+       DATA DIVISION.
+       FILE SECTION.
+
+
+       FD SALIDA
+              LABEL RECORDS ARE STANDARD
+              RECORDING MODE IS F
+              BLOCK CONTAINS 0 RECORDS
+              RECORD CONTAINS 100 CHARACTERS
+              DATA RECORDS IS REG-SALIDA.
+       01 REG-SALIDA                     PIC X(100).
+       WORKING-STORAGE SECTION.
+       01 WORK-AREA.
+          05  AUX-PROGRAMA               PIC X(8)    VALUE 'PB32D402'.
+          05  FS-SALIDA                  PIC 99      VALUE ZEROS.
+          05  AUX-FECHA.
+              10  AUX-ANYO               PIC 9(4)    VALUE ZERO.
+              10  AUX-MES                PIC 9(2)    VALUE ZERO.
+              10  AUX-DIA                PIC 9(2)    VALUE ZERO.
+
+          05  AUX-HOR.
+              10  AUX-HORA               PIC 9(2)    VALUE ZERO.
+              10  AUX-MINUTO             PIC 9(2)    VALUE ZERO.
+              10  AUX-SEGUNDO            PIC 9(2)    VALUE ZERO.
+              10  AUX-MILI               PIC 9(2)    VALUE ZERO.
+          05 CTE-GUIONES                 PIC X(50)   VALUE ALL '='.
+          05 CTE-1                       PIC 9       VALUE 1.
+          05 CTE-100                     PIC 999     VALUE 100.
+          05 CTR-LEIDOS                  PIC S9(9) COMP-3 VALUE 0.
+          05 CTR-INCIDENCIAS             PIC S9(9) COMP-3 VALUE 0.
+          05 AUX-DEPART                  PIC 9(3)    VALUE ZERO.
+          05 EDI-SQLCODE                 PIC +ZZZZZZZZ9 VALUE ZERO.
+          05 WS-OU-REG-SALIDA.
+             10 WS-OU-CODIGO             PIC 9(5)    VALUE ZEROS.
+             10 WS-OU-NOMBRE             PIC X(20)   VALUE SPACES.
+             10 WS-OU-DEPART             PIC 9(3)    VALUE ZEROS.
+             10 WS-OU-SALARIO            PIC S9(7)V9(2) VALUE ZEROS.
+      ******************************************************************
+      *                    AREA SQL                                    *
+      *EL SQLC:ARE DE COMS DE SQL TIENE EL SQLCODE.
+      *05 SQLCODE PIC S9 (9) COMP-4 ES BINARIA Y OCUPA 4 OCTETOS
+      *EL EXEC ES OBLIGATORIO QUE ESTE EN LA COL 12
+      *EL EXEC ES OBLIGATORIO QUE ESTE EN LA MISMA LINEA
+      ******************************************************************
+           EXEC SQL
+               INCLUDE SQLCA
+           END-EXEC.
+
+           EXEC SQL
+               INCLUDE IEMPLE32
+           END-EXEC.
+
+           EXEC SQL
+               DECLARE X CURSOR FOR
+                       SELECT EMP_CODIGO, EMP_NOMBRE, EMP_DEPART,
+                              EMP_SALARIO
+                       FROM EMPLEADO
+                 WHERE EMP_DEPART = :DCLEMPLEADO.EMP-DEPART
+           END-EXEC.
+
+      ******************************************************************
+      *                    PROCEDURE DIVISION                          *
+      ******************************************************************
+
+       PROCEDURE DIVISION.
+
+      ******************************************************************
+      *                    1000-MAINLINE                               *
+      *----------------------------------------------------------------*
+      * ESTE PARRAFO CONTROLA LA ESTRUCTURA DEL PROCESO DEL PROGRAMA   *
+      ******************************************************************
+       1000-MAIN.
+           PERFORM 2000-INICIAL
+              THRU 2000-INICIAL-EXIT.
+
+           PERFORM 3000-PROCESO
+              THRU 3000-PROCESO-EXIT
+             UNTIL SQLCODE EQUAL TO 100.
+
+           PERFORM 8000-FINAL
+              THRU 8000-FINAL-EXIT.
+           STOP RUN.
+
+      ******************************************************************
+      *                    2000-INICIO.                                *
+      ******************************************************************
+       2000-INICIAL.
+           OPEN OUTPUT SALIDA.
+           ACCEPT AUX-FECHA FROM DATE YYYYMMDD.
+           ACCEPT AUX-HOR   FROM TIME.
+           ACCEPT AUX-DEPART FROM SYSIN.
+
+           DISPLAY 'COMIENZA EL PROGRAMA ' AUX-PROGRAMA.
+           DISPLAY ' FECHA: ' AUX-ANYO '-' AUX-MES '-' AUX-DIA
+                   ' HORA: '  AUX-HORA ':' AUX-MINUTO ':' AUX-SEGUNDO
+                   ':' AUX-MILI.
+
+           DISPLAY 'EMPLEADOS DEL DEPARTAMENTO ' AUX-DEPART.
+           MOVE AUX-DEPART TO EMP-DEPART IN DCLEMPLEADO.
+           EXEC SQL
+              OPEN X
+           END-EXEC.
+           EXEC SQL
+              FETCH X INTO :DCLEMPLEADO
+           END-EXEC.
+       2000-INICIAL-EXIT.
+           EXIT.
+
+      ******************************************************************
+      *                    3000-PROCESO                                *
+      ******************************************************************
+       3000-PROCESO.
+           MOVE EMP-CODIGO  TO WS-OU-CODIGO.
+           MOVE EMP-NOMBRE  TO WS-OU-NOMBRE.
+           MOVE EMP-SALARIO TO WS-OU-SALARIO.
+           MOVE EMP-DEPART  TO WS-OU-DEPART.
+           WRITE REG-SALIDA FROM WS-OU-REG-SALIDA.
+           EXEC SQL
+              FETCH X INTO :DCLEMPLEADO
+           END-EXEC.
+       3000-PROCESO-EXIT.
+           EXIT.
+
+      ******************************************************************
+      *                    8000-FINAL                                  *
+      ******************************************************************
+       8000-FINAL.
+           DISPLAY 'FIN DEL PROGRAMA: ' AUX-PROGRAMA.
+           EXEC SQL
+              CLOSE X
+           END-EXEC.
+           CLOSE SALIDA.
+       8000-FINAL-EXIT.
+           EXIT.

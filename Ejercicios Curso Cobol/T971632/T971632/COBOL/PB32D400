@@ -1,0 +1,156 @@
+      ******************************************************************
+      * NOM. DESCR: PROGRAMA BATCH PARA MOSTRAR FECHA Y HORA.          *
+      * OBJETIVE:   ESTE PROGRAMA COGE LA FECHA Y LA HORA DEL SISTEMA  *
+      *             Y LO MUESTRA EN UN REPORT (SPOOL)                  *
+      * PRIMER PROGRAMA DB2. RECOGE EMPLEADO POR SYSIN Y MUESTRA       *
+      *        SUS DATOS CON DISPLAY POR SYSOUT                        *
+      * TYPE:       BATCH REPORT                                       *
+      * INPUTS:     DATOS DEL SISTEMA (FECHA Y HORA)                   *
+      * OUTPUTS:    REPORTS/SYSPRINT  (FECHA Y HORA FORMATEADA)        *
+      ******************************************************************
+      *    MI PRIMER PROGRAMA DB2                                      *
+      ******************************************************************
+
+      ******************************************************************
+      *                    IDENTIFIATION DIVISION                      *
+      ******************************************************************
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB32D400.
+       AUTHOR. LUIS.
+       DATE-WRITTEN. ENERO, 2024.
+       DATE-COMPILED.
+
+      ******************************************************************
+      *                    ENVIRONMENT DIVISION                        *
+      ******************************************************************
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+
+       SPECIAL-NAMES.
+            DECIMAL-POINT IS COMMA.
+
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+
+      ******************************************************************
+      *                    DATA DIVISION                         *
+      ******************************************************************
+       DATA DIVISION.
+       FILE SECTION.
+
+       WORKING-STORAGE SECTION.
+       01 WORK-AREA.
+          05  AUX-PROGRAMA               PIC X(8)    VALUE 'PB32D400'.
+          05  AUX-FECHA.
+              10  AUX-ANYO               PIC 9(4)    VALUE ZERO.
+              10  AUX-MES                PIC 9(2)    VALUE ZERO.
+              10  AUX-DIA                PIC 9(2)    VALUE ZERO.
+
+          05  AUX-HOR.
+              10  AUX-HORA               PIC 9(2)    VALUE ZERO.
+              10  AUX-MINUTO             PIC 9(2)    VALUE ZERO.
+              10  AUX-SEGUNDO            PIC 9(2)    VALUE ZERO.
+              10  AUX-MILI               PIC 9(2)    VALUE ZERO.
+          05 CTE-GUIONES                 PIC X(50)   VALUE ALL '='.
+          05 CTE-1                       PIC 9       VALUE 1.
+          05 CTE-100                     PIC 999     VALUE 100.
+          05 CTR-LEIDOS                  PIC S9(9) COMP-3 VALUE 0.
+          05 CTR-INCIDENCIAS             PIC S9(9) COMP-3 VALUE 0.
+          05 AUX-NUM-EMPLE               PIC 9(4)    VALUE ZERO.
+          05 EDI-SQLCODE                 PIC +ZZZZZZZZ9 VALUE ZERO.
+      ******************************************************************
+      *                    AREA SQL                                    *
+      *EL SQLC:ARE DE COMS DE SQL TIENE EL SQLCODE.
+      *05 SQLCODE PIC S9 (9) COMP-4 ES BINARIA Y OCUPA 4 OCTETOS
+      *EL EXEC ES OBLIGATORIO QUE ESTE EN LA COL 12
+      *EL EXEC ES OBLIGATORIO QUE ESTE EN LA MISMA LINEA
+      ******************************************************************
+           EXEC SQL
+               INCLUDE SQLCA
+           END-EXEC.
+
+           EXEC SQL
+               INCLUDE IEMPLE32
+           END-EXEC.
+      ******************************************************************
+      *                    PROCEDURE DIVISION                          *
+      ******************************************************************
+       PROCEDURE DIVISION.
+
+      ******************************************************************
+      *                    1000-MAINLINE                               *
+      *----------------------------------------------------------------*
+      * ESTE PARRAFO CONTROLA LA ESTRUCTURA DEL PROCESO DEL PROGRAMA   *
+      ******************************************************************
+       1000-MAIN.
+           PERFORM 2000-INICIAL
+              THRU 2000-INICIAL-EXIT.
+
+           PERFORM 3000-PROCESO
+              THRU 3000-PROCESO-EXIT.
+
+           PERFORM 8000-FINAL
+              THRU 8000-FINAL-EXIT.
+
+           STOP RUN.
+
+      ******************************************************************
+      *                    2000-INICIO.                                *
+      ******************************************************************
+       2000-INICIAL.
+           ACCEPT AUX-FECHA FROM DATE YYYYMMDD.
+           ACCEPT AUX-HOR   FROM TIME.
+           ACCEPT AUX-NUM-EMPLE FROM SYSIN.
+
+           DISPLAY 'COMIENZA EL PROGRAMA ' AUX-PROGRAMA.
+           DISPLAY ' FECHA: ' AUX-ANYO '-' AUX-MES '-' AUX-DIA
+                   ' HORA: '  AUX-HORA ':' AUX-MINUTO ':' AUX-SEGUNDO
+                   ':' AUX-MILI.
+
+       2000-INICIAL-EXIT.
+           EXIT.
+
+      ******************************************************************
+      *                    3000-PROCESO                                *
+      ******************************************************************
+       3000-PROCESO.
+           MOVE AUX-NUM-EMPLE TO EMP-CODIGO IN DCLEMPLEADO.
+
+           EXEC SQL
+               SELECT EMP_NOMBRE,
+                      EMP_DEPART,
+                      EMP_SALARIO
+                 INTO :DCLEMPLEADO.EMP-NOMBRE,
+                      :DCLEMPLEADO.EMP-DEPART,
+                      :DCLEMPLEADO.EMP-SALARIO
+                 FROM EMPLEADO
+                 WHERE EMP_CODIGO = :EMP-CODIGO
+           END-EXEC.
+           MOVE SQLCODE TO EDI-SQLCODE.
+           DISPLAY 'EDI-SQLCODE ' EDI-SQLCODE.
+           EVALUATE SQLCODE
+               WHEN ZERO
+               ADD CTE-1 TO CTR-LEIDOS
+
+               DISPLAY 'NOMBRE= ' EMP-NOMBRE OF DCLEMPLEADO
+                       ' DEPAR= '  EMP-DEPART OF DCLEMPLEADO
+                       ' SALARIO= ' EMP-SALARIO OF DCLEMPLEADO
+               WHEN +100
+                    DISPLAY 'NO EXISTE EMPL AL LEER CLAVE: ' EMP-CODIGO
+                    ADD CTE-1 TO CTR-INCIDENCIAS
+               WHEN OTHER
+                    DISPLAY 'ERROR AL LEER EN DB2. SQLCODE= ' SQLCODE
+                    MOVE SQLCODE TO EDI-SQLCODE
+                    DISPLAY 'EDI-SQLCODE ' EDI-SQLCODE
+           END-EVALUATE.
+       3000-PROCESO-EXIT.
+           EXIT.
+
+      ******************************************************************
+      *                    8000-FINAL                                  *
+      ******************************************************************
+       8000-FINAL.
+           DISPLAY 'FIN DEL PROGRAMA: ' AUX-PROGRAMA.
+
+       8000-FINAL-EXIT.
+           EXIT.

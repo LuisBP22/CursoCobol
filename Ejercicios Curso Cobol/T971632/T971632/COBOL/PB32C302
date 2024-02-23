@@ -1,0 +1,143 @@
+      ******************************************************************
+      * NOM. DESCR: ESTE PROGRAMA CARGA TABLA INTERNA (ARRAY) DESDE    *
+      *             SYSIN (JCL)                                        *
+      * OBJETIVE:   ESTE PROGRAMA COGE LA FECHA Y LA HORA DEL SISTEMA, *
+      *             COGE DATOS DESDE SYSIN (TITULO Y DIAS DE LA SEMANA)*
+      *             Y LOS MUESTRA EN UN REPORT/SPOOL                   *
+      *             TAMBIEN SE RECOGERA UN DIA A BUSCAR QUE            *
+      *             SE BUSCARA EN LA TABLA YA CARGADA Y                *
+      *             SI LO ENCUENTRA MOSTRARA EL DIA BUSCADO            *
+      *             SINO LO ENCUENTRA MOSTRRA 'DIA NO ENCONTRADO'      *
+      * TYPE:       BATCH REPORT                                       *
+      * INPUTS:     DATOS DEL SISTEMA (FECHA Y HORA)                   *
+      *             DATOS DE SYSIN (TITULO, DIAS DE LA SEMANA + 1 DIA)*
+      * OUTPUTS:    REPORT                                             *
+      ******************************************************************
+
+
+      ******************************************************************
+      *                    IDENTIFIATION DIVISION                      *
+      ******************************************************************
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB32C302.
+       AUTHOR. LUIS.
+       DATE-WRITTEN. ENERO, 2024.
+       DATE-COMPILED.
+
+      ******************************************************************
+      *                    ENVIRONMENT DIVISION                        *
+      ******************************************************************
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+
+       SPECIAL-NAMES.
+            DECIMAL-POINT IS COMMA.
+
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+
+      ******************************************************************
+      *                    DATA DIVISION                         *
+      ******************************************************************
+       DATA DIVISION.
+       FILE SECTION.
+
+       WORKING-STORAGE SECTION.
+       01 WORK-AREA.
+          05  AUX-PROGRAMA               PIC X(8)    VALUE 'PB32C302'.
+          05  AUX-FECHA.
+              10  AUX-ANYO               PIC 9(4)    VALUE ZERO.
+              10  AUX-MES                PIC 9(2)    VALUE ZERO.
+              10  AUX-DIA                PIC 9(2)    VALUE ZERO.
+
+          05  AUX-HOR.
+              10  AUX-HORA               PIC 9(2)    VALUE ZERO.
+              10  AUX-MINUTO             PIC 9(2)    VALUE ZERO.
+              10  AUX-SEGUNDO            PIC 9(2)    VALUE ZERO.
+              10  AUX-MILI               PIC 9(2)    VALUE ZERO.
+          05  AUX-INDICE                 PIC 9(1)    VALUE ZERO.
+          05  AUX-TITULO                 PIC X(10)   VALUE SPACES.
+          05  AUX-DIAS                   PIC X(10)   VALUE SPACES.
+          05  AUX-IND                    PIC 9(1)    VALUE 1.
+          05  CTE-1                      PIC 9(1)    VALUE 1.
+          05  AUX-BUSCAR                 PIC X(10)   VALUE SPACES.
+          05  AUX-ENCONTRADO             PIC 9(1)    VALUE ZERO.
+      ******************************************************************
+      *                    TABLES (ARRAY)                              *
+      ******************************************************************
+          05  TBL-DIA-SEMANA             PIC X(10)   OCCURS 7 TIMES.
+      ******************************************************************
+      *                    PROCEDURE DIVISION                          *
+      ******************************************************************
+       PROCEDURE DIVISION.
+
+      ******************************************************************
+      *                    1000-MAINLINE                               *
+      *----------------------------------------------------------------*
+      * ESTE PARRAFO CONTROLA LA ESTRUCTURA DEL PROCESO DEL PROGRAMA   *
+      ******************************************************************
+       1000-MAIN.
+           PERFORM 2000-INICIAL
+              THRU 2000-INICIAL-EXIT.
+
+           PERFORM 3000-PROCESO
+              THRU 3000-PROCESO-EXIT.
+
+           PERFORM 8000-FINAL
+              THRU 8000-FINAL-EXIT.
+
+           STOP RUN.
+
+      ******************************************************************
+      *                    2000-INICIO.                                *
+      ******************************************************************
+       2000-INICIAL.
+           ACCEPT AUX-FECHA FROM DATE YYYYMMDD.
+           ACCEPT AUX-HOR   FROM TIME.
+           ACCEPT AUX-TITULO FROM SYSIN.
+           ACCEPT AUX-BUSCAR FROM SYSIN.
+           DISPLAY 'COMIENZA EL PROGRAMA ' AUX-PROGRAMA.
+           DISPLAY ' FECHA: ' AUX-ANYO '-' AUX-MES '-' AUX-DIA
+                   ' HORA: '  AUX-HORA '-' AUX-MINUTO ':' AUX-SEGUNDO
+                   ':' AUX-MILI.
+           DISPLAY '******* ' AUX-TITULO ' ******* '.
+       2000-INICIAL-EXIT.
+           EXIT.
+
+      ******************************************************************
+      *                    3000-PROCESO                                *
+      ******************************************************************
+       3000-PROCESO.
+           MOVE 1 TO AUX-INDICE.
+           PERFORM UNTIL AUX-INDICE GREATER THAN 7
+                   ACCEPT AUX-DIAS FROM SYSIN
+                   MOVE AUX-DIAS TO TBL-DIA-SEMANA(AUX-INDICE)
+                   DISPLAY ' RECIBIENDO EL DIA: ' AUX-DIAS
+                   ADD 1 TO AUX-INDICE
+           END-PERFORM.
+           DISPLAY 'DISPLAY DATOS TABLA'.
+
+           PERFORM VARYING AUX-IND FROM CTE-1 BY CTE-1
+              UNTIL AUX-IND GREATER THAN 7
+                 DISPLAY ' DIA: ' TBL-DIA-SEMANA(AUX-IND) 'IND:' AUX-IND
+                 IF TBL-DIA-SEMANA(AUX-IND) EQUAL AUX-BUSCAR THEN
+                    ADD 1 TO AUX-ENCONTRADO
+                 END-IF
+
+           END-PERFORM.
+       3000-PROCESO-EXIT.
+           EXIT.
+
+      ******************************************************************
+      *                    8000-FINAL                                  *
+      ******************************************************************
+       8000-FINAL.
+           IF AUX-ENCONTRADO EQUAL 1 THEN
+              DISPLAY 'ENCONTRADO'
+           ELSE
+              DISPLAY 'NO ENCONTRADO'
+           END-IF.
+           DISPLAY 'FIN DEL PROGRAMA: ' AUX-PROGRAMA.
+
+       8000-FINAL-EXIT.
+           EXIT.

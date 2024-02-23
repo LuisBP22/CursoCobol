@@ -1,0 +1,18 @@
+//T971632E JOB 'COMPILA-COBOL','T971632-EXEC01',CLASS=A,MSGCLASS=X,     00010009
+//             NOTIFY=&SYSUID,COND=(4,LT)                               00030004
+//*=================================================================    00131000
+//*   AQUI DEBAJO SE ENVIA A EJECUTAR SI NO HAY ERRORES DE COMPILAR     00132000
+//*=================================================================    00133000
+//EXEPGM   EXEC  PGM=PB32C01,TIME=(,3)                                  00135009
+//STEPLIB   DD   DSN=T9716.T971632.LOAD,DISP=SHR                        00136009
+//SYSPRINT  DD   SYSOUT=*,OUTLIM=200                                    00137000
+//*-----------------------------------------------------------------    00170000
+//*     PONER AQUI DEBAJO LOS FICHEROS DE MI PROGRAMA                   00180000
+//*-----------------------------------------------------------------    00181000
+//**FCIUDAD   DD   DSN=T9716.T971632.FCIUDAD,DISP=SHR                   00200009
+//**LCIUDAD   DD   SYSOUT=*,OUTLIM=300                                  00210000
+//*-----------------------------------------------------------------    00211000
+//*     PONER AQUI DEBAJO LA SYSIN  DE MI PROGRAMA                      00212000
+//*-----------------------------------------------------------------    00213000
+//SYSIN DD DUMMY                                                        00220004
+//                                                                      00230000

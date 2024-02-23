@@ -1,0 +1,20 @@
+      ******************************************************************
+      * DCLGEN TABLE(RESTART)                                          *
+      *        LIBRARY(T9716.T971632.INCLUDES(IREST32))                *
+      *        LANGUAGE(COBOL)                                         *
+      *        QUOTE                                                   *
+      * ... IS THE DCLGEN COMMAND THAT MADE THE FOLLOWING STATEMENTS   *
+      ******************************************************************
+           EXEC SQL DECLARE RESTART TABLE
+           ( EMPCOD                         INTEGER NOT NULL,
+             PGMID                          CHAR(30) NOT NULL
+           ) END-EXEC.
+      ******************************************************************
+      * COBOL DECLARATION FOR TABLE RESTART                            *
+      ******************************************************************
+       01  DCLRESTART.
+           10 EMPCOD               PIC S9(9) USAGE COMP.
+           10 PGMID                PIC X(30).
+      ******************************************************************
+      * THE NUMBER OF COLUMNS DESCRIBED BY THIS DECLARATION IS 2       *
+      ******************************************************************

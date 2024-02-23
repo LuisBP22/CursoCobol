@@ -1,0 +1,13 @@
+-- select * from empleado;                                              00010004
+-- DROP TABLE EMPLEADO;                                                 00020008
+-- DROP INDEX IEMP32;                                                   00030006
+-- /* CREAR TABLA EMPLEADO                                              00040006
+CREATE TABLE EMPLEADO                                                   00050006
+( EMP_CODIGO   INTEGER      NOT NULL PRIMARY KEY,                       00060006
+  EMP_NOMBRE  CHAR(30)      NOT NULL,                                   00070006
+  EMP_DEPART SMALLINT       NOT NULL,                                   00080006
+  EMP_SALARIO DECIMAL (9,2) NOT NULL)                                   00090006
+IN DATABASE CFDB03T;                                                    00100006
+CREATE UNIQUE INDEX IEMP32                                              00110006
+   ON EMPLEADO(EMP_CODIGO);                                             00120006
+COMMIT;                                                                 00130006

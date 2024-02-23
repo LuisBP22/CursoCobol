@@ -1,0 +1,46 @@
+//T971632C JOB COMPILA-COBOL-Y-EJECUTA,'COMPICOB',                      00010099
+//             NOTIFY=&SYSUID,REGION=0M,COND=(4,LT)                     00030030
+//*=====================================================                00060000
+//*===AQUI DEBAJO SE COMPILA Y SE CREA EL EJECUTABLE                    00070000
+//*=====================================================                00080000
+//   SET MEMBER=PB32C111                                                00081099
+//PASOCOMP  EXEC PGM=IGYCRCTL,REGION=2048K,                             00090000
+// PARM='LIB,TEST'                                                      00100072
+//SYSPRINT DD  SYSOUT=*                                                 00110000
+//*=====================================================                00111000
+//*===AQUI DEBAJO SE INDICA DONDE ESTAN LAS COPYS                       00112000
+//*=====================================================                00113000
+//SYSLIB   DD  DSN=T9716.T971632.COPYS,DISP=SHR                         00120099
+//*   DEBAJO   ================================ RUTINAS                 00121009
+//SYSLIN   DD  DSNAME=T9716.T971632.OBJ(&MEMBER),UNIT=SYSDA,            00130099
+//             DISP=SHR                                                 00130107
+//*             DISP=(MOD,PASS),SPACE=(TRK,(3,3)),                      00140006
+//*             DCB=(BLKSIZE=3200)                                      00150006
+//*   ARRIBA   ================================ RUTINAS                 00151031
+//SYSUT1   DD  UNIT=SYSDA,SPACE=(CYL,(1,1))                             00160000
+//SYSUT2   DD  UNIT=SYSDA,SPACE=(CYL,(1,1))                             00170000
+//SYSUT3   DD  UNIT=SYSDA,SPACE=(CYL,(1,1))                             00180000
+//SYSUT4   DD  UNIT=SYSDA,SPACE=(CYL,(1,1))                             00190000
+//SYSUT5   DD  UNIT=SYSDA,SPACE=(CYL,(1,1))                             00200000
+//SYSUT6   DD  UNIT=SYSDA,SPACE=(CYL,(1,1))                             00210000
+//SYSUT7   DD  UNIT=SYSDA,SPACE=(CYL,(1,1))                             00220000
+//*   DEBAJO   ================================ TU COBOL PPAL           00230009
+//SYSIN    DD  DSN=T9716.T971632.COBOL(&MEMBER),DISP=SHR                00240099
+//*   ARRIBA   ================================ TU COBOL PPAL           00250009
+//PASOLKED EXEC PGM=HEWL,COND=(5,LT,PASOCOMP),PARM=''                   00762400
+//SYSLIB   DD  DSN=CEE.SCEELKED,DISP=SHR                                00762500
+//*        DD  DISP=SHR,DSN=DSN710.SDSNLOAD                             00762600
+//         DD  DISP=SHR,DSN=IMS710.SDFSRESL                             00762700
+//*        DD  DISP=SHR,DSN=CICSTS21.CICS.SDFHLOAD                      00762800
+//         DD  DISP=SHR,DSN=ISP.SISPLOAD                                00762900
+//         DD  DISP=SHR,DSN=GDDM.SADMMOD                                00763000
+//SYSUT1   DD  DSN=&SYSUT1,UNIT=SYSDA,SPACE=(1024,(200,20)),            00763100
+//             DCB=BLKSIZE=1024                                         00763200
+//SYSPRINT DD  SYSOUT=*                                                 00763300
+//*   DEBAJO   ================================ PRINCIPAL               00763518
+//SYSLIN   DD    DSNAME=T9716.T971632.OBJ(&MEMBER),DISP=SHR             00763799
+//SYSIN    DD    *                                                      00764508
+ NAME PB32C111 (R)                                                      00764699
+/*                                                                      00764708
+//SYSLMOD  DD  DSNAME=T9716.T971632.LOAD(&MEMBER),DISP=SHR              00765099
+//*   ARRIBA   ================================ TU LOAD                 00770000

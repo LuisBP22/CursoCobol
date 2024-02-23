@@ -1,0 +1,187 @@
+      ******************************************************************
+      * NOM. DESCR: PROGRAMA BATCH PARA REALIZAR OPERACIONES    *
+      * OBJETIVE:   ESTE PROGRAMA COGE 2 NUMEROS Y REALIZA SUS       *
+      *             OPERACIONES  MATEMATICAS                           *
+      * TYPE:       BATCH REPORT                                       *
+      * INPUTS:     DATOS DEL SISTEMA (FECHA Y HORA) Y 2 NUMEROS       *
+      * OUTPUTS:    REPORTS/SYSPRINT  (FECHA Y HORA FORMATEADA) Y RES  *
+      ******************************************************************
+
+      ******************************************************************
+      *                    IDENTIFIATION DIVISION                      *
+      ******************************************************************
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB32C90.
+       AUTHOR. LUIS.
+       DATE-WRITTEN. ENERO, 2024.
+       DATE-COMPILED.
+
+      ******************************************************************
+      *                    ENVIRONMENT DIVISION                        *
+      ******************************************************************
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+
+       SPECIAL-NAMES.
+            DECIMAL-POINT IS COMMA.
+
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+
+      ******************************************************************
+      *                    DATA DIVISION                         *
+      ******************************************************************
+       DATA DIVISION.
+       FILE SECTION.
+
+       WORKING-STORAGE SECTION.
+       01 WORK-AREA.
+          05  AUX-PROGRAMA               PIC X(8)    VALUE 'PB32C90'.
+          05  AUX-FECHA.
+              10  AUX-ANYO               PIC 9(4)    VALUE ZERO.
+              10  AUX-MES                PIC 9(2)    VALUE ZERO.
+              10  AUX-DIA                PIC 9(2)    VALUE ZERO.
+
+          05  AUX-HOR.
+              10  AUX-HORA               PIC 9(2)    VALUE ZERO.
+              10  AUX-MINUTO             PIC 9(2)    VALUE ZERO.
+              10  AUX-SEGUNDO            PIC 9(2)    VALUE ZERO.
+              10  AUX-MILI               PIC 9(2)    VALUE ZERO.
+
+
+          05  AUX-NUM1                   PIC 9(1)    VALUE ZERO.
+          05  AUX-NUM2                   PIC 9(1)    VALUE ZERO.
+          05  AUX-RES                    PIC 9(2)    VALUE ZERO.
+          05  CTR-I                      PIC 9(2)    VALUE ZERO.
+      ******************************************************************
+      *                    CONSTANTES                                  *
+      ******************************************************************
+          05  CTE-1                      PIC 9(1)    VALUE 1.
+          05  CTE-2                      PIC 9(2)    VALUE 2.
+          05  CTE-10                     PIC 9(2)    VALUE 10.
+      ******************************************************************
+      *                    PROCEDURE DIVISION                          *
+      ******************************************************************
+       PROCEDURE DIVISION.
+
+      ******************************************************************
+      *                    1000-MAINLINE                               *
+      *----------------------------------------------------------------*
+      * ESTE PARRAFO CONTROLA LA ESTRUCTURA DEL PROCESO DEL PROGRAMA   *
+      ******************************************************************
+       1000-MAIN.
+           PERFORM 2000-INICIAL
+              THRU 2000-INICIAL-EXIT.
+      *--------> BUCLE N TIMES (SOLO ES PONER EL CONTADOR Y EL TIMES)
+           PERFORM 3000-PROCESO
+              THRU 3000-PROCESO-EXIT
+             CTE-2 TIMES.
+
+           PERFORM 8000-FINAL
+              THRU 8000-FINAL-EXIT.
+
+           STOP RUN.
+
+      ******************************************************************
+      *                    2000-INICIO.                                *
+      ******************************************************************
+       2000-INICIAL.
+           ACCEPT AUX-FECHA FROM DATE YYYYMMDD.
+           ACCEPT AUX-HOR   FROM TIME.
+
+           ACCEPT AUX-NUM1  FROM SYSIN.
+           ACCEPT AUX-NUM2  FROM SYSIN.
+
+           DISPLAY 'COMIENZA EL PROGRAMA ' AUX-PROGRAMA.
+           DISPLAY ' FECHA: ' AUX-ANYO '-' AUX-MES '-' AUX-DIA
+                   ' HORA: '  AUX-HORA ':' AUX-MINUTO ':' AUX-SEGUNDO
+                   ':' AUX-MILI.
+
+       2000-INICIAL-EXIT.
+           EXIT.
+
+      ******************************************************************
+      *                    3000-PROCESO                                *
+      ******************************************************************
+       3000-PROCESO.
+           DISPLAY ' MOSTRANDO LECTURA SYSIN. '.
+           DISPLAY ' EL NUMERO 1 ES: ' AUX-NUM1.
+           DISPLAY ' EL NUMERO 2 ES: ' AUX-NUM2.
+           DISPLAY ' '.
+
+           PERFORM 3100-SUMA
+              THRU 3100-SUMA-EXIT.
+           PERFORM 3200-RESTA
+              THRU 3200-RESTA-EXIT.
+           PERFORM 3300-MULTI
+              THRU 3300-MULTI-EXIT.
+           PERFORM 3400-DIVI
+              THRU 3400-DIVI-EXIT.
+      *--------> BUCLE UNTIL HACER HASTA QUE EL CONTADOR SEA IGUAL A 10
+           MOVE 1 TO CTR-I.
+           PERFORM 3050-HOLA
+              THRU 3050-HOLA-EXIT
+           UNTIL CTR-I GREATER THAN CTE-10.
+      *------->BUCLE UNTIL PERO INLINE DICE ADIOS 10 VECES SIN PARRAFO
+           MOVE 1 TO CTR-I.
+           PERFORM UNTIL CTR-I GREATER THAN CTE-10
+              DISPLAY ' ADIOS ' CTR-I
+              ADD 1 TO CTR-I
+           END-PERFORM.
+      *------->VARYING (EL FOR DE COBOL)
+           PERFORM VARYING CTR-I FROM CTE-1 BY CTE-2
+            UNTIL CTR-I GREATER THAN CTE-10
+            DISPLAY ' BUCLE FOR ' CTR-I
+           END-PERFORM.
+       3000-PROCESO-EXIT.
+           EXIT.
+       3050-HOLA.
+           DISPLAY ' HOLA ' CTR-I.
+           ADD 1 TO CTR-I.
+       3050-HOLA-EXIT.
+           EXIT.
+       3100-SUMA.
+           DISPLAY ' SUMA ' .
+           DISPLAY ' '.
+           ADD AUX-NUM1, AUX-NUM2 TO AUX-RES.
+           DISPLAY ' RESULTADO DE LA SUMA: ' AUX-RES.
+           DISPLAY ' '.
+
+       3100-SUMA-EXIT.
+           EXIT.
+
+       3200-RESTA.
+           DISPLAY ' RESTA '.
+           DISPLAY ' '.
+           SUBTRACT AUX-NUM2 FROM AUX-NUM1 GIVING AUX-RES.
+           DISPLAY ' RESULTADO DE LA RESTA: ' AUX-RES.
+           DISPLAY ' '.
+
+       3200-RESTA-EXIT.
+           EXIT.
+
+       3300-MULTI.
+           DISPLAY ' MULTIPLICACION '.
+           DISPLAY ' '.
+           MULTIPLY AUX-NUM1 BY AUX-NUM2 GIVING AUX-RES.
+           DISPLAY ' RESULTADO DE LA MULTIPLICACION ' AUX-RES.
+           DISPLAY ' '.
+       3300-MULTI-EXIT.
+           EXIT.
+
+       3400-DIVI.
+           DISPLAY ' DIVISION '.
+           DISPLAY ' '.
+           DIVIDE  AUX-NUM2 BY AUX-NUM1 GIVING AUX-RES.
+           DISPLAY ' RESULTADO DE LA DIVISION ' AUX-RES.
+           DISPLAY ' '.
+       3400-DIVI-EXIT.
+           EXIT.
+      ******************************************************************
+      *                    8000-FINAL                                  *
+      ******************************************************************
+       8000-FINAL.
+           DISPLAY 'FIN DEL PROGRAMA: ' AUX-PROGRAMA.
+
+       8000-FINAL-EXIT.
+           EXIT.

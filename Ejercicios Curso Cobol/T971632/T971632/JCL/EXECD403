@@ -1,0 +1,25 @@
+//T971632E JOB 'EJECUTA-COB+SQL','T971632-EXE32400',
+//             MSGCLASS=X,MSGLEVEL=(1,1),
+//             NOTIFY=&SYSUID,TIME=5
+//JOBLIB   DD  DSN=T9716.T971632.LOAD,DISP=SHR
+//*------------------------------------------------------------------*//00047010
+//*------- EJECUTA COBOL CON SQL ------------------------------------*//00047010
+//*------------------------------------------------------------------*//00047010
+//EXECPGM  EXEC PGM=IKJEFT01,DYNAMNBR=20                                00050000
+//SYSTSPRT DD SYSOUT=*                                                  00060000
+//SYSPRINT DD SYSOUT=*
+//SYSIN    DD *
+300
+1000
+//SYSTSIN  DD *
+PROFILE    PREFIX(T9716)                                                00080000
+DSN SYSTEM(DSN1) RETRY(0) TEST(0)                                       00090000
+RUN PROGRAM(PB32D403) -                                                 00100009
+  LIB('T9716.T971632.LOAD')                                             00110008
+END
+//*FENTRADA DD DSN=T9716.T971632.DATOS.FENTRADA,DISP=SHR
+//SALJCL   DD DSN=T9716.T971632.ZSALD403.EMPLEADO,DISP=(NEW,CATLG),
+//            LRECL=100,RECFM=FB,BLKSIZE=0,DSORG=PS,
+//            SPACE=(TRK,(3,3),RLSE),OUTLIM=140
+//*SYSIN   DD  *
+//

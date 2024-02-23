@@ -1,0 +1,252 @@
+      ******************************************************************
+      * NOM. DESCR: ESTE PROGRAMA TRATA TABLA INDEXADA -PROVINCIAS-    *
+      * OBJTIVE:    ESTE PROGRAMA COGE LA FECHA Y LA HORA DEL SISTEMA  *
+      *             DEFINE LA TABLA -CON VALORES EN WORKING-           *
+      *                  -TABLA CARGADA EN WORKING-                    *
+      *                  -TABLA INDEXADA CON BUSQUEDA BINARIA          *
+      *                  -SEARCH ALL-                                  *
+      *             Y LOS MUESTRA EN UN REPORT/SPOOL                   *
+      *             TAMBIEN SE RECOGERA DE SYSIN -NOMBRE DE PROVINCIA- *
+      *             SE BUSCARA EN LA TABLA YA CARGADA Y                *
+      *             SI ENCUENTRA LA PROVINC MOSTRARA EL NUM-PROVINCIA  *
+      *             SI NO LO ENCUENTRA MOSTARA 'PROVINCIA NOT FOUND'.  *
+      * TYPE:       BATCH REPORT                                       *
+      * INPUTS:     DATOS DEL SISTEMA (FECHA Y HORA)                   *
+      *             DATOS DE SYSIN (TITULO, NOMBRE-PROVINCIA)          *
+      * OUTPUTS:    REPORT                                             *
+      ******************************************************************
+
+
+      ******************************************************************
+      *                    IDENTIFIATION DIVISION                      *
+      ******************************************************************
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB32C306.
+       AUTHOR. LUIS.
+       DATE-WRITTEN. ENERO, 2024.
+       DATE-COMPILED.
+
+      ******************************************************************
+      *                    ENVIRONMENT DIVISION                        *
+      ******************************************************************
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+
+       SPECIAL-NAMES.
+            DECIMAL-POINT IS COMMA.
+
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+
+      ******************************************************************
+      *                    DATA DIVISION                         *
+      ******************************************************************
+       DATA DIVISION.
+       FILE SECTION.
+
+       WORKING-STORAGE SECTION.
+       01 WORK-AREA.
+          05  AUX-PROGRAMA               PIC X(8)    VALUE 'PB32C306'.
+          05  AUX-FECHA.
+              10  AUX-ANYO               PIC 9(4)    VALUE ZERO.
+              10  AUX-MES                PIC 9(2)    VALUE ZERO.
+              10  AUX-DIA                PIC 9(2)    VALUE ZERO.
+
+          05  AUX-HOR.
+              10  AUX-HORA               PIC 9(2)    VALUE ZERO.
+              10  AUX-MINUTO             PIC 9(2)    VALUE ZERO.
+              10  AUX-SEGUNDO            PIC 9(2)    VALUE ZERO.
+              10  AUX-MILI               PIC 9(2)    VALUE ZERO.
+          05  AUX-INDICE                 PIC 9(1)    VALUE ZERO.
+          05  AUX-TITULO                 PIC X(10)   VALUE SPACES.
+          05  AUX-DIAS                   PIC X(10)   VALUE SPACES.
+          05  AUX-IND                    PIC 9(2)    VALUE 1.
+          05  CTE-1                      PIC 9(1)    VALUE 1.
+          05  AUX-BUSCAR                 PIC X(22)   VALUE SPACES.
+          05  AUX-ENCONTRADO             PIC 9(1)    VALUE ZERO.
+      ******************************************************************
+      *                         TABLES                                 *
+      ******************************************************************
+      ******************************************************************
+      *                         TABLES                                 *
+      ******************************************************************
+           05  PROVINCIAS.
+               10  FILLER                  PIC X(24)
+                                   VALUE '01ALAVA                 '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '02ALBACETE              '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '03ALICANTE              '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '04ALMERIA               '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '33ASTURIAS              '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '05AVILA                 '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '06BADAJOZ               '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '08BARCELONA             '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '09BURGOS                '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '10CACERES               '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '11CADIZ                 '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '39CANTABRIA             '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '12CASTELLON             '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '51CEUTA                 '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '13CIUDAD REAL           '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '14CORDOBA               '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '15CORU#A LA             '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '16CUENCA                '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '17GIRONA                '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '18GRANADA               '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '19GUADALAJARA           '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '20GUIPUZCOA             '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '21HUELVA                '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '22HUESCA                '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '07ILLES BALEARS         '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '23JAEN                  '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '24LEON                  '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '25LLEIDA                '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '27LUGO                  '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '28MADRID                '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '29MALAGA                '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '52MELILLA               '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '30MURCIA                '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '31NAVARRA               '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '32OURENSE               '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '34PALENCIA              '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '35PALMAS, LAS           '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '36PONTEVEDRA            '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '26RIOJA, LA             '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '37SALAMANCA             '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '38SANTA CRUZ DE TENERIFE'.
+               10  FILLER                  PIC X(24)
+                                   VALUE '40SEGOVIA               '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '41SEVILLA               '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '42SORIA                 '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '43TARRAGONA             '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '44TERUEL                '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '45TOLEDO                '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '46VALENCIA              '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '47VALLADOLID            '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '48VIZCAYA               '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '49ZAMORA                '.
+               10  FILLER                  PIC X(24)
+                                   VALUE '50ZARAGOZA              '.
+
+           05  TBL-PROVINCIAS              REDEFINES PROVINCIAS
+                                           OCCURS 52 TIMES
+                                           ASCENDING KEY TBL-NOMBRE
+                                           INDEXED BY NDX-I.
+               10 TBL-CODIGO               PIC X(2).
+               10 TBL-NOMBRE               PIC X(22).
+
+      *****************************************************************
+      *                    PROCEDURE DIVISION                          *
+      ******************************************************************
+       PROCEDURE DIVISION.
+
+      ******************************************************************
+      *                    1000-MAINLINE                               *
+      *----------------------------------------------------------------*
+      * ESTE PARRAFO CONTROLA LA ESTRUCTURA DEL PROCESO DEL PROGRAMA   *
+      ******************************************************************
+       1000-MAIN.
+           PERFORM 2000-INICIAL
+              THRU 2000-INICIAL-EXIT.
+
+           PERFORM 3000-PROCESO
+              THRU 3000-PROCESO-EXIT.
+
+           PERFORM 8000-FINAL
+              THRU 8000-FINAL-EXIT.
+
+           STOP RUN.
+
+      ******************************************************************
+      *                    2000-INICIO.                                *
+      ******************************************************************
+       2000-INICIAL.
+           ACCEPT AUX-FECHA FROM DATE YYYYMMDD.
+           ACCEPT AUX-HOR   FROM TIME.
+           ACCEPT AUX-TITULO FROM SYSIN.
+           ACCEPT AUX-BUSCAR FROM SYSIN.
+           DISPLAY 'COMIENZA EL PROGRAMA ' AUX-PROGRAMA.
+           DISPLAY ' FECHA: ' AUX-ANYO '-' AUX-MES '-' AUX-DIA
+                   ' HORA: '  AUX-HORA '-' AUX-MINUTO ':' AUX-SEGUNDO
+                   ':' AUX-MILI.
+           DISPLAY '******* ' AUX-TITULO ' ******* '.
+       2000-INICIAL-EXIT.
+           EXIT.
+
+      ******************************************************************
+      *                    3000-PROCESO                                *
+      ******************************************************************
+       3000-PROCESO.
+           PERFORM VARYING AUX-IND FROM CTE-1 BY CTE-1
+             UNTIL AUX-IND GREATER THAN 52
+           DISPLAY 'PROVINCIA ' TBL-NOMBRE(AUX-IND) ' IND: ' AUX-IND
+                   ' CON CODIGO ' TBL-CODIGO(AUX-IND)
+           END-PERFORM.
+       3000-PROCESO-EXIT.
+           EXIT.
+
+      ******************************************************************
+      *                    8000-FINAL                                  *
+      ******************************************************************
+       8000-FINAL.
+           SEARCH ALL TBL-PROVINCIAS
+                 AT END
+                    DISPLAY ' PROVINCIA NOT FOUND '  AUX-BUSCAR
+                 WHEN TBL-NOMBRE(NDX-I) EQUAL TO AUX-BUSCAR
+                    SET AUX-IND TO NDX-I
+                    DISPLAY ' PROVINCIA ENCONTRADA' AUX-BUSCAR          IND
+                            ' EN LA POSICION ' AUX-IND
+                            ' CON EL CODIGO ' TBL-CODIGO(NDX-I)
+           END-SEARCH.
+           DISPLAY 'FIN DEL PROGRAMA: ' AUX-PROGRAMA.
+
+       8000-FINAL-EXIT.
+           EXIT.

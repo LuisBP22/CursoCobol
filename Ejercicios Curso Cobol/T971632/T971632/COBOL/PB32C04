@@ -1,0 +1,123 @@
+      ******************************************************************
+      * NOM. DESCR: PROGRAMA BATCH PARA MOSTRAR FECHA Y HORA.          *
+      * OBJETIVE:   ESTE PROGRAMA COGE LA FECHA Y HORA DEL SISTEMA     *
+      *             Y LO MUESTRA EN UN REPORT (SPOOL)                  *
+      * TYPE:       BATCH REPORT                                       *
+      * INPUTS:     DATOS DEL SISTEMA (FECHA Y HORA)                   *
+      * OUTPUTS:    REPORTS/SYSPRINT  (FECHA Y HORA FORMATEADA)        *
+      ******************************************************************
+
+      ******************************************************************
+      *                    IDENTIFIATION DIVISION                      *
+      ******************************************************************
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB32C04.
+       AUTHOR. LUIS.
+       DATE-WRITTEN. ENERO, 2024.
+       DATE-COMPILED.
+
+      ******************************************************************
+      *                    ENVIRONMENT DIVISION                        *
+      ******************************************************************
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+
+       SPECIAL-NAMES.
+            DECIMAL-POINT IS COMMA.
+
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+
+      ******************************************************************
+      *                    DATA DIVISION                         *
+      ******************************************************************
+       DATA DIVISION.
+       FILE SECTION.
+
+       WORKING-STORAGE SECTION.
+       01 WORK-AREA.
+          05  AUX-PROGRAMA               PIC X(8)    VALUE 'PB32C03'.
+          05  AUX-FECHA.
+              10  AUX-ANYO               PIC 9(4)    VALUE ZERO.
+              10  AUX-MES                PIC 9(2)    VALUE ZERO.
+              10  AUX-DIA                PIC 9(2)    VALUE ZERO.
+
+          05  AUX-HOR.
+              10  AUX-HORA               PIC 9(2)    VALUE ZERO.
+              10  AUX-MINUTO             PIC 9(2)    VALUE ZERO.
+              10  AUX-SEGUNDO            PIC 9(2)    VALUE ZERO.
+              10  AUX-MILI               PIC 9(2)    VALUE ZERO.
+          05  CTE-5                      PIC 9(1)    VALUE 5.
+          05  AUX-RES                    PIC 9(2)    VALUE ZERO.
+      ******************************************************************
+      *                    PROCEDURE DIVISION                          *
+      ******************************************************************
+       PROCEDURE DIVISION.
+
+      ******************************************************************
+      *                    1000-MAINLINE                               *
+      *----------------------------------------------------------------*
+      * ESTE PARRAFO CONTROLA LA ESTRUCTURA DEL PROCESO DEL PROGRAMA   *
+      ******************************************************************
+       1000-MAIN.
+           PERFORM 2000-INICIAL
+              THRU 2000-INICIAL-EXIT.
+
+           PERFORM 3000-PROCESO
+              THRU 3000-PROCESO-EXIT.
+
+           PERFORM 8000-FINAL
+              THRU 8000-FINAL-EXIT.
+
+           STOP RUN.
+
+      ******************************************************************
+      *                    2000-INICIO.                                *
+      ******************************************************************
+       2000-INICIAL.
+           ACCEPT AUX-FECHA FROM DATE YYYYMMDD.
+           ACCEPT AUX-HOR   FROM TIME.
+
+           DISPLAY 'COMIENZA EL PROGRAMA ' AUX-PROGRAMA.
+           DISPLAY ' FECHA: ' AUX-ANYO '-' AUX-MES '-' AUX-DIA
+                   ' HORA: '  AUX-HORA ':' AUX-MINUTO ':' AUX-SEGUNDO
+                   ':' AUX-MILI.
+
+       2000-INICIAL-EXIT.
+           EXIT.
+
+      ******************************************************************
+      *                    3000-PROCESO                                *
+      ******************************************************************
+       3000-PROCESO.
+           MULTIPLY CTE-5 BY 1 GIVING AUX-RES.
+           DISPLAY  CTE-5 ' X ' 1 ' = ' AUX-RES.
+           MULTIPLY CTE-5 BY 2 GIVING AUX-RES.
+           DISPLAY  CTE-5 ' X ' 2 ' = ' AUX-RES.
+           MULTIPLY CTE-5 BY 3 GIVING AUX-RES.
+           DISPLAY  CTE-5 ' X ' 3 ' = ' AUX-RES.
+           MULTIPLY CTE-5 BY 4 GIVING AUX-RES.
+           DISPLAY  CTE-5 ' X ' 4 ' = ' AUX-RES.
+           MULTIPLY CTE-5 BY 5 GIVING AUX-RES.
+           DISPLAY  CTE-5 ' X ' 5 ' = ' AUX-RES.
+           MULTIPLY CTE-5 BY 6 GIVING AUX-RES.
+           DISPLAY  CTE-5 ' X ' 6 ' = ' AUX-RES.
+           MULTIPLY CTE-5 BY 7 GIVING AUX-RES.
+           DISPLAY  CTE-5 ' X ' 7 ' = ' AUX-RES.
+           MULTIPLY CTE-5 BY 8 GIVING AUX-RES.
+           DISPLAY  CTE-5 ' X ' 8 ' = ' AUX-RES.
+           MULTIPLY CTE-5 BY 9 GIVING AUX-RES.
+           DISPLAY  CTE-5 ' X ' 9 ' = ' AUX-RES.
+           MULTIPLY CTE-5 BY 10 GIVING AUX-RES.
+           DISPLAY  CTE-5 ' X ' 10 ' = ' AUX-RES.
+       3000-PROCESO-EXIT.
+           EXIT.
+
+      ******************************************************************
+      *                    8000-FINAL                                  *
+      ******************************************************************
+       8000-FINAL.
+           DISPLAY 'FIN DEL PROGRAMA: ' AUX-PROGRAMA.
+
+       8000-FINAL-EXIT.
+           EXIT.

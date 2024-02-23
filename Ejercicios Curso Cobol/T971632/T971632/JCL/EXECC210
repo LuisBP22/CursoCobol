@@ -1,0 +1,32 @@
+//T971632E JOB 'COMPILA-COBOL','T971632-EXEC01',CLASS=A,MSGCLASS=X,     00010000
+//             NOTIFY=&SYSUID,COND=(4,LT)                               00020000
+//*=================================================================    00030000
+//*   AQUI DEBAJO SE ENVIA A EJECUTAR SI NO HAY ERRORES DE COMPILAR     00040000
+//*=================================================================    00050000
+//STEP10   EXEC  PGM=IDCAMS                                             00060000
+//SYSPRINT  DD   SYSOUT=*,OUTLIM=200                                    00070000
+//SYSIN     DD   *                                                      00080000
+   DELETE T9716.T971632.ZSAL210.EMPLEADO                                00080100
+   IF LASTCC=8 THEN SET MAXCC=0                                         00080200
+/*                                                                      00080300
+//*=================================================================    00080400
+//*   AQUI DEBAJO SE ENVIA A EJECUTAR SI NO HAY ERRORES DE COMPILAR     00080500
+//*=================================================================    00080600
+//STEP20   EXEC  PGM=PB32C210,TIME=(,3)                                 00080701
+//STEPLIB   DD   DSN=T9716.T971632.LOAD,DISP=SHR                        00080800
+//SYSPRINT  DD   SYSOUT=*,OUTLIM=200                                    00080900
+//*-----------------------------------------------------------------    00081000
+//*     PONER AQUI DEBAJO LOS FICHEROS DE MI PROGRAMA                   00082000
+//*-----------------------------------------------------------------    00083000
+//ENTJCL    DD DSN=T9716.X.ZSAL308.EMPLEADO,DISP=SHR                    00084003
+//SALJCL    DD DSN=T9716.T971632.ZSAL210.EMPLEADO,DISP=(NEW,CATLG),     00085000
+//             LRECL=133,RECFM=FB,BLKSIZE=0,DSORG=PS,                   00086000
+//             SPACE=(TRK,(3,3),RLSE),OUTLIM=140                        00087000
+//**LCIUDAD   DD   SYSOUT=*,OUTLIM=300                                  00088000
+//*-----------------------------------------------------------------    00089000
+//*     PONER AQUI DEBAJO LA SYSIN  DE MI PROGRAMA                      00090000
+//*-----------------------------------------------------------------    00100000
+//SYSIN DD *                                                            00110000
+EJ210                                                                   00120002
+/*                                                                      00130000
+//                                                                      00140000

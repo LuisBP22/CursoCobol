@@ -1,0 +1,534 @@
+      ******************************************************************
+      * NOM. DESCR: ESTE PROGRAMA CONFECCIONA INFORME EMPLEADOS        *
+      * OBJETIVE:   ESTE PROGRAMA LEE FICHERO DE EMPLEADO -CON SALARIO-*
+      *             POR DEPARTAMENTOS Y PROVINCIAS  (ASIGNACION PARCIAL*
+      *             SOBRE CP(1:2)   Y SACA UN LISTADO O INFORME        *
+      *             DE LOS DATOS DE LOS EMPLEADOS CON 2 NIVELES DE     *
+      *             RUPTURA (POR DEPAR Y PROVINCIA) CON SUBTOTALES    *
+      *             PARCIALES DE LOS SALARIOS Y   SACANDO AL FINAL     *
+      *             UN TOTAL GENERAL DE SALARIO.                       *
+      * TYPE:       BATCH/REPORT                                       *
+      * INPUTS:     DATOS DEL SISTEMA (FECHA Y HORA)                   *
+      *             FICHERO DE ENTRADA EMPLEADO ORDENADO POR DPTO.Y CP *
+      *                     T9716.T9716XX.ZENTRADA.EMPLEADO            *
+      *                     T9716.X.ZENT210.EMPLEADO                   *
+      * OUTPUTS:    INFORME EMPLEADO                                   *
+      *                     T9716.T9716XX.ZSAL210.EMPLEADO             *
+      ******************************************************************
+
+      ******************************************************************
+      *                    IDENTIFIATION DIVISION                      *
+      ******************************************************************
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB32C210.
+       AUTHOR. LUIS.
+       DATE-WRITTEN. ENERO, 2024.
+       DATE-COMPILED.
+
+      ******************************************************************
+      *                    ENVIRONMENT DIVISION                        *
+      ******************************************************************
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+
+       SPECIAL-NAMES.
+            DECIMAL-POINT IS COMMA.
+
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+
+      ******************************************************************
+      *                    INPUT FILE                                  *
+      *-----------------------------------------------------------------
+      * FICHERO DE EMPLEADO  *
+      ******************************************************************
+           SELECT EMPLEADO
+             ASSIGN TO ENTJCL
+             ORGANIZATION IS SEQUENTIAL
+             ACCESS MODE IS SEQUENTIAL
+             FILE STATUS IS FS-EMPLEADO.
+      ******************************************************************
+      *                    OUTPUT FILE                                 *
+      *-----------------------------------------------------------------
+      * FICHERO DE SALIDA                                              *
+      ******************************************************************
+           SELECT INFORME
+             ASSIGN TO SALJCL
+             ORGANIZATION IS SEQUENTIAL
+             ACCESS MODE IS SEQUENTIAL
+             FILE STATUS IS FS-INFORME.
+
+      ******************************************************************
+      *                    DATA DIVISION                          ******
+      ******************************************************************
+       DATA DIVISION.
+       FILE SECTION.
+       FD EMPLEADO
+              LABEL RECORDS ARE STANDARD
+              RECORDING MODE IS F
+              BLOCK CONTAINS 0 RECORDS
+              RECORD CONTAINS 100 CHARACTERS
+              DATA RECORD IS REG-EMPLEADO.
+       01 REG-EMPLEADO                   PIC X(100).
+
+       FD INFORME
+              LABEL RECORDS ARE STANDARD
+              RECORDING MODE IS F
+              BLOCK CONTAINS 0 RECORDS
+              RECORD CONTAINS 132 CHARACTERS
+              DATA RECORD IS REG-INFORME.
+       01 REG-INFORME                    PIC X(132).
+
+      ******************************************************************
+      *                     WORKING-STORAGE SECTION                    *
+      ******************************************************************
+       WORKING-STORAGE SECTION.
+       01 WORK-AREA.
+      ******************************************************************
+      *                     RECORD LAYOUT                              *
+      *----------------------------------------------------------------*
+          05 WS-IN-REG-EMPLEADO.
+             10 WS-IN-CODIGO             PIC 9(5)    VALUE ZEROES.
+             10 WS-IN-NOMBRE             PIC X(20)   VALUE SPACES.
+             10 WS-IN-CPOSTAL.
+                15 WS-IN-PROV            PIC 9(2)    VALUE ZEROS.
+                15 WS-IN-OFI             PIC 9(3)    VALUE ZEROS.
+             10 WS-IN-CALLE              PIC X(20)   VALUE SPACES.
+             10 WS-IN-DEPAR              PIC 9(4)    VALUE ZEROS.
+             10 WS-IN-SALARIO            PIC S9(7)V9(2) COMP-3.
+             10 FILLER                   PIC X(41)   VALUE SPACES.
+      ******************************************************************
+      *                   REPORT LINES AND HEADING.                    *
+      ******************************************************************
+      *COPY RPTEMPLE.
+
+           05  RPT-CAB1.
+               10  FILLER                  PIC X(10)   VALUE SPACES.
+               10  FILLER                  PIC X(18)   VALUE 'PROGRAMA:
+      -            'PB32C210'.
+               10  FILLER                  PIC X(25)   VALUE SPACES.
+               10  FILLER                  PIC X(07)   VALUE 'FECHA: '.
+               10  RPT1-DIA                PIC 99      VALUE ZEROS.
+               10  FILLER                  PIC X       VALUE '/'.
+               10  RPT1-MES                PIC 99      VALUE ZEROS.
+               10  FILLER                  PIC X       VALUE '/'.
+               10  RPT1-ANO                PIC 99      VALUE ZEROS.
+
+           05  RPT-CAB2.
+               10  FILLER                  PIC X(53)   VALUE SPACES.
+               10  FILLER                  PIC X(07)   VALUE 'PAGINA:'.
+               10  RPT2-PAGINA             PIC ZZ9     VALUE ZEROS.
+
+           05  RPT-CAB3.
+               10  FILLER                  PIC X(25)   VALUE SPACES.
+               10  FILLER                  PIC X(25)   VALUE 'LISTADO DE
+      -            ' EMPLEADOS'.
+
+           05  RPT-CAB4.
+               10  FILLER                  PIC X(10)   VALUE SPACES.
+               10  FILLER                  PIC X(60)   VALUE ALL '='.
+
+           05  RPT-CAB5.
+               10  FILLER                  PIC X(10)   VALUE SPACES.
+               10  FILLER                  PIC X(04)   VALUE 'DPTO'.
+               10  FILLER                  PIC X(02)   VALUE SPACES.
+               10  FILLER                  PIC X(04)   VALUE 'PROV'.
+               10  FILLER                  PIC X(02)   VALUE SPACES.
+               10  FILLER                  PIC X(85)   VALUE 'CODIGO  NO
+      -            'MBRE                   SALARIO'.
+
+           05  RPT-CAB6.
+               10  FILLER                  PIC X(10)   VALUE SPACES.
+               10  FILLER                  PIC X(04)   VALUE '===='.
+               10  FILLER                  PIC X(02)   VALUE SPACES.
+               10  FILLER                  PIC X(85)   VALUE '======  ==
+      -            '==================  ============='.
+
+           05  RPT-DET.
+               10  FILLER                  PIC X(10)   VALUE SPACES.
+               10  RPT-DET-DEPAR           PIC ZZZZ    VALUE SPACES.
+               10  FILLER                  PIC X(02)   VALUE SPACES.
+               10  RPT-DET-PROV            PIC Z(02)   VALUE ZEROS.
+               10  FILLER                  PIC X(03)   VALUE SPACES.
+               10  RPT-DET-CODIGO          PIC Z(05)   VALUE ZEROS.
+               10  FILLER                  PIC X(03)   VALUE SPACES.
+               10  RPT-DET-NOMBRE          PIC X(19)   VALUE SPACES.
+               10  FILLER                  PIC X(02)   VALUE SPACES.
+               10  RPT-DET-SALARIO         PIC Z.ZZZ.ZZZ,99+
+                                   VALUE ZEROS.
+
+           05  RPT-MEDIA.
+               10  FILLER                  PIC X(12)   VALUE SPACES.
+               10  FILLER                  PIC X(07)   VALUE 'MEDIA: '.
+               10  FILLER                  PIC X(25)   VALUE SPACES.
+               10  RPT-MEDIA-SALARIO       PIC ZZ.ZZZ.ZZ9,99+
+                                   VALUE ZEROS.
+
+           05  RPT-GUIONES.
+               10  FILLER                  PIC X(45)   VALUE SPACES.
+               10  FILLER                  PIC X(13)   VALUE ALL '='.
+
+           05  RPT-TOT.
+               10  FILLER                  PIC X(12)   VALUE SPACES.
+               10  FILLER                  PIC X(08)   VALUE 'TOTAL DE'.
+               10  RPT-TOT-REGISTROS       PIC ZZ9     VALUE ZEROS.
+               10  FILLER                  PIC X(20)   VALUE ' EMPLEADOS
+      -            ': '.
+               10  RPT-TOT-SALARIO         PIC ZZZ.ZZZ.ZZ9,99+
+                                   VALUE ZEROS.
+
+           05  RPT-PAR.
+               10  FILLER                  PIC X(05)   VALUE SPACES.
+               10  FILLER                  PIC X(12)
+                                   VALUE 'TOTAL DPTO: '.
+               10  RPT-PAR-DEPAR           PIC Z(4)    VALUE ZEROS.
+               10  FILLER                  PIC X(22)   VALUE SPACES.
+               10  RPT-PAR-SALARIO         PIC ZZZ.ZZZ.ZZ9,99+
+                                   VALUE ZEROS.
+
+           05  RPT-PROV.
+               10  FILLER                  PIC X(05)   VALUE SPACES.
+               10  FILLER                  PIC X(12)
+                                   VALUE 'TOTAL PROV: '.
+               10  RPT-PAR-PROV            PIC Z(4)    VALUE ZEROS.
+               10  FILLER                  PIC X(22)   VALUE SPACES.
+               10  RPT-PAR-PROV-SALARIO     PIC ZZZ.ZZZ.ZZ9,99+
+                                   VALUE ZEROS.
+
+
+      ******************************************************************
+      *                     FILE STATUS                                *
+      ******************************************************************
+          05 FS-EMPLEADO                 PIC 99      VALUE ZEROS.
+          05 FS-INFORME                  PIC 99      VALUE ZEROS.
+      ******************************************************************
+      *                     FLAGS AND SWITCHES                         *
+      ******************************************************************
+          05 END-OF-FILE-SWITCH          PIC X       VALUE 'N'.
+             88  END-OF-FILE                         VALUE 'Y'.
+             88  NOT-END-OF-FILE                     VALUE 'N'.
+
+          05 EMPTY-FILE-SWITCH           PIC X       VALUE 'N'.
+             88 EMPTY-FILE                           VALUE 'Y'.
+
+          05 ERRORES-SWITCH              PIC X       VALUE 'N'.
+             88 ERRORES                              VALUE 'Y'.
+
+      ******************************************************************
+      *                     COUNTERS AND ACCUMULATORS                  *
+      ******************************************************************
+          05 CTR-COUNTERS.
+             10 CTR-LEIDOS                 PIC S9(9) COMP-3 VALUE ZEROS.
+             10 CTR-GRABADOS               PIC S9(9) COMP-3 VALUE ZEROS.
+             10 CTR-LINEAS                 PIC S9(9) COMP-3 VALUE  80.
+             10 CTR-PAGINAS                PIC S9(9) COMP-3 VALUE ZEROS.
+          05 ACC-TOTAL             PIC S9(9)V9(2) COMP-3 VALUE ZEROS.
+          05 ACC-PARCIAL           PIC S9(9)V9(2) COMP-3 VALUE ZEROS.
+          05 ACC-PROV              PIC S9(9)V9(2) COMP-3 VALUE ZEROS.
+          05 AUX-MEDIA             PIC S9(9)V9(2) COMP-3 VALUE ZEROS.
+      ******************************************************************
+      *                     CONSTANTS AND LITERALS                     *
+      ******************************************************************
+          05  CTE-1                      PIC 9       VALUE 1.
+          05  CTE-2                      PIC 9       VALUE 2.
+          05  CTE-3                      PIC 9       VALUE 3.
+          05  CTE-10                     PIC 9(2)    VALUE 10.
+          05  CTE-GUIONES                PIC X(70)   VALUE ALL '='.
+          05  CTE-MAX-LINEAS             PIC 9(2)    VALUE 59.
+          05  CTE-1001                   PIC 9(4)    VALUE 1001.
+          05  LIT-VACIO                  PIC X(90)   VALUE '
+      -           '            NO HAY REGISTROS PARA ESTE INFORME'.
+
+
+      ******************************************************************
+      *                     VARIABLES NORMALES                         *
+      ******************************************************************
+          05  AUX-DEPAR                  PIC 9(4)    VALUE ZEROS.
+          05  AUX-PROV                   PIC 9(2)    VALUE ZEROS.
+          05  AUX-PROGRAMA               PIC X(8)    VALUE 'PB32C309'.
+          05  AUX-FECHA.
+              10  AUX-ANYO               PIC 9(4)    VALUE ZERO.
+              10  AUX-MES                PIC 9(2)    VALUE ZERO.
+              10  AUX-DIA                PIC 9(2)    VALUE ZERO.
+
+          05  AUX-HOR.
+              10  AUX-HORA               PIC 9(2)    VALUE ZERO.
+              10  AUX-MINUTO             PIC 9(2)    VALUE ZERO.
+              10  AUX-SEGUNDO            PIC 9(2)    VALUE ZERO.
+              10  AUX-MILI               PIC 9(2)    VALUE ZERO.
+
+      ******************************************************************
+      *                    PROCEDURE DIVISION                          *
+      ******************************************************************
+       PROCEDURE DIVISION.
+
+      ******************************************************************
+      *                    1000-MAINLINE                               *
+      *----------------------------------------------------------------*
+      * ESTE PARRAFO CONTROLA LA ESTRUCTURA DEL PROCESO DEL PROGRAMA   *
+      ******************************************************************
+       1000-MAIN.
+           PERFORM 2000-INICIAL
+              THRU 2000-INICIAL-EXIT.
+
+           PERFORM 3000-PROCESO
+              THRU 3000-PROCESO-EXIT
+             UNTIL END-OF-FILE
+                OR ERRORES.
+           PERFORM 8000-FINAL
+              THRU 8000-FINAL-EXIT.
+
+           STOP RUN.
+
+      ******************************************************************
+      *                    2000-INICIO.                                *
+      ******************************************************************
+       2000-INICIAL.
+           ACCEPT AUX-FECHA FROM DATE YYYYMMDD.
+           ACCEPT AUX-HOR   FROM TIME.
+
+
+           MOVE AUX-ANYO TO RPT1-ANO.
+           MOVE AUX-MES  TO RPT1-MES.
+           MOVE AUX-DIA  TO RPT1-DIA.
+           DISPLAY 'COMIENZA EL PROGRAMA ' AUX-PROGRAMA.
+           DISPLAY ' FECHA: ' AUX-ANYO '-' AUX-MES '-' AUX-DIA
+                   ' HORA: '  AUX-HORA ':' AUX-MINUTO ':' AUX-SEGUNDO
+                   ':' AUX-MILI.
+           DISPLAY CTE-GUIONES.
+           SET NOT-END-OF-FILE TO TRUE.
+
+           OPEN INPUT EMPLEADO
+               OUTPUT INFORME.
+           IF FS-EMPLEADO NOT EQUAL TO ZEROS
+              DISPLAY 'ERROR AL ABRIR EMPLEADO. FS= ' FS-EMPLEADO
+              SET ERRORES TO TRUE
+           END-IF.
+
+           IF FS-INFORME NOT EQUAL TO ZEROS
+              DISPLAY 'ERROR AL ABRIR EMPLEADO. FS= ' FS-INFORME
+              SET ERRORES TO TRUE
+           END-IF.
+
+           PERFORM 9000-LEER
+              THRU 9000-LEER-EXIT.
+
+           IF END-OF-FILE
+              SET EMPTY-FILE TO TRUE
+           END-IF.
+
+       2000-INICIAL-EXIT.
+           EXIT.
+
+      ******************************************************************
+      *                    3000-PROCESO                                *
+      ******************************************************************
+       3000-PROCESO.
+
+           PERFORM 3100-ASIGNAR
+              THRU 3100-ASIGNAR-EXIT.
+
+           PERFORM 3200-ACUMULAR
+              THRU 3200-ACUMULAR-EXIT
+                UNTIL END-OF-FILE OR
+                      ERRORES     OR
+                      AUX-DEPAR NOT EQUAL TO WS-IN-DEPAR.
+           PERFORM 3300-FIN-DEPAR
+              THRU 3300-FIN-DEPAR-EXIT.
+
+       3000-PROCESO-EXIT.
+           EXIT.
+
+       3100-ASIGNAR.
+           MOVE WS-IN-DEPAR        TO AUX-DEPAR
+                                      RPT-DET-DEPAR.
+           INITIALIZE ACC-PARCIAL.
+
+       3100-ASIGNAR-EXIT.
+           EXIT.
+
+       3200-ACUMULAR.
+           PERFORM 3210-DEPAR-PROV
+              THRU 3210-DEPAR-PROV-EXIT.
+           PERFORM 3220-PROCESO-DEPAR-PROV
+              THRU 3220-PROCESO-DEPAR-PROV-EXIT
+                UNTIL END-OF-FILE OR
+                      ERRORES     OR
+                      AUX-DEPAR NOT EQUAL TO WS-IN-DEPAR OR
+                      AUX-PROV  NOT EQUAL TO WS-IN-PROV.
+           PERFORM 3230-FIN-PROV
+              THRU 3230-FIN-PROV-EXIT.
+
+       3200-ACUMULAR-EXIT.
+           EXIT.
+
+       3210-DEPAR-PROV.
+           INITIALIZE ACC-PROV.
+           MOVE WS-IN-PROV TO AUX-PROV
+                              RPT-DET-PROV.
+
+       3210-DEPAR-PROV-EXIT.
+           EXIT.
+
+       3220-PROCESO-DEPAR-PROV.
+           IF CTR-LINEAS GREATER THAN CTE-MAX-LINEAS
+              PERFORM 9100-CABECERAS
+                 THRU 9100-CABECERAS-EXIT
+           END-IF.
+
+           PERFORM 3221-IMPRIMIR-DET
+              THRU 3221-IMPRIMIR-DET-EXIT.
+
+           PERFORM 9000-LEER
+              THRU 9000-LEER-EXIT.
+       3220-PROCESO-DEPAR-PROV-EXIT.
+            EXIT.
+       3221-IMPRIMIR-DET.
+
+           MOVE WS-IN-CODIGO       TO RPT-DET-CODIGO.
+           MOVE WS-IN-NOMBRE       TO RPT-DET-NOMBRE.
+           MOVE WS-IN-SALARIO      TO RPT-DET-SALARIO.
+           MOVE WS-IN-PROV         TO RPT-DET-PROV.
+
+           ADD  WS-IN-SALARIO TO ACC-TOTAL
+                                 ACC-PARCIAL
+                                 ACC-PROV.
+
+           WRITE REG-INFORME FROM RPT-DET.
+
+           IF FS-INFORME EQUAL TO ZEROS
+              ADD CTE-1 TO CTR-GRABADOS
+
+           ELSE
+              DISPLAY ' ERROR AL GRABAR SALIDA ' FS-INFORME
+
+              SET ERRORES TO TRUE
+           END-IF.
+           ADD CTE-1    TO CTR-LINEAS.
+
+        3221-IMPRIMIR-DET-EXIT.
+            EXIT.
+
+       3230-FIN-PROV.
+           MOVE  ACC-PROV TO RPT-PAR-PROV-SALARIO.
+           MOVE  AUX-PROV    TO RPT-PAR-PROV.
+           WRITE REG-INFORME FROM RPT-GUIONES.
+           WRITE REG-INFORME FROM RPT-PROV.
+           WRITE REG-INFORME FROM RPT-GUIONES.
+
+           IF FS-INFORME EQUAL TO ZEROS
+              ADD CTE-1 TO CTR-GRABADOS
+
+           ELSE
+              DISPLAY ' ERROR AL GRABAR SALIDA ' FS-INFORME
+
+              SET ERRORES TO TRUE
+           END-IF.
+
+       3230-FIN-PROV-EXIT.
+                EXIT.
+
+       3300-FIN-DEPAR.
+           MOVE  ACC-PARCIAL TO RPT-PAR-SALARIO.
+           MOVE  AUX-DEPAR   TO RPT-PAR-DEPAR.
+           WRITE REG-INFORME FROM RPT-GUIONES.
+           WRITE REG-INFORME FROM RPT-PAR.
+           WRITE REG-INFORME FROM RPT-GUIONES.
+
+           IF FS-INFORME EQUAL TO ZEROS
+              ADD CTE-1 TO CTR-GRABADOS
+
+           ELSE
+              DISPLAY ' ERROR AL GRABAR SALIDA ' FS-INFORME
+
+              SET ERRORES TO TRUE
+           END-IF.
+
+       3300-FIN-DEPAR-EXIT.
+           EXIT.
+      ******************************************************************
+      *                    8000-FINAL                                  *
+      ******************************************************************
+       8000-FINAL.
+           EVALUATE TRUE
+            WHEN EMPTY-FILE
+                 IF CTR-LINEAS GREATER THAN CTE-MAX-LINEAS
+                    PERFORM 9100-CABECERAS
+                       THRU 9100-CABECERAS-EXIT
+                 END-IF
+
+                 WRITE REG-INFORME FROM LIT-VACIO
+            WHEN ERRORES
+                 DISPLAY '// ==================//'
+                 DISPLAY '// ------------------//'
+                 DISPLAY '// EJECUCION NO CORRECTA //'
+                 DISPLAY '// ------------------//'
+                 DISPLAY '// ==================//'
+
+                 MOVE CTE-1001 TO RETURN-CODE
+              WHEN OTHER
+                 IF CTR-LINEAS GREATER THAN CTE-MAX-LINEAS
+                    PERFORM 9100-CABECERAS
+                       THRU 9100-CABECERAS-EXIT
+                 END-IF
+                 PERFORM 8100-TOTALES
+                    THRU 8100-TOTALES-EXIT
+             END-EVALUATE.
+                 CLOSE EMPLEADO
+                       INFORME.
+           DISPLAY CTE-GUIONES.
+           DISPLAY 'LEIDOS EMPLEADO: ' CTR-LEIDOS.
+           DISPLAY 'GRABADOS: ' CTR-GRABADOS.
+           DISPLAY 'FIN DEL PROGRAMA: ' AUX-PROGRAMA.
+
+       8000-FINAL-EXIT.
+           EXIT.
+       8100-TOTALES.
+           WRITE REG-INFORME FROM RPT-GUIONES
+               AFTER ADVANCING CTE-2 LINES.
+           ADD CTE-2 TO CTR-LINEAS.
+
+           MOVE CTR-LEIDOS TO RPT-TOT-REGISTROS.
+           MOVE ACC-TOTAL  TO RPT-TOT-SALARIO.
+
+           WRITE REG-INFORME FROM RPT-TOT
+               AFTER ADVANCING CTE-3 LINES.
+           COMPUTE AUX-MEDIA = (ACC-TOTAL / CTR-GRABADOS).
+           MOVE AUX-MEDIA TO RPT-MEDIA-SALARIO.
+           WRITE REG-INFORME FROM RPT-MEDIA.
+       8100-TOTALES-EXIT.
+           EXIT.
+      ******************************************************************
+      *                    9000-LEER                                   *
+      *----------------------------------------------------------------*
+      ******************************************************************
+      *                    LECTURA DEL FICHERO                         *
+      ******************************************************************
+        9000-LEER.
+            READ EMPLEADO INTO WS-IN-REG-EMPLEADO
+               AT END
+                   SET END-OF-FILE TO TRUE
+               NOT AT END
+                   ADD CTE-1 TO CTR-LEIDOS
+            END-READ.
+        9000-LEER-EXIT.
+            EXIT.
+        9100-CABECERAS.
+            INITIALIZE REG-INFORME.
+
+            WRITE REG-INFORME
+                AFTER ADVANCING PAGE.
+            WRITE REG-INFORME FROM RPT-CAB1.
+
+            ADD CTE-1 TO CTR-PAGINAS.
+            MOVE CTR-PAGINAS TO RPT2-PAGINA.
+            WRITE REG-INFORME FROM RPT-CAB2.
+            WRITE REG-INFORME FROM RPT-CAB3
+                AFTER ADVANCING CTE-2 LINES.
+            WRITE REG-INFORME FROM RPT-CAB4.
+            WRITE REG-INFORME FROM RPT-CAB5
+                AFTER ADVANCING CTE-2 LINES.
+            WRITE REG-INFORME FROM RPT-CAB6.
+            MOVE CTE-10 TO CTR-LINEAS.
+        9100-CABECERAS-EXIT.
+            EXIT.

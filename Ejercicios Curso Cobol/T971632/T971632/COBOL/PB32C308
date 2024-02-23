@@ -1,0 +1,327 @@
+      ******************************************************************
+      * NOM. DESCR: ESTE PROGRAMA GRABA EN FICH. SECUENCIAL -EMPLEADO- *
+      *             DESDE EL FICHERO SECUENCIAL.                       *
+      * OBJETIVE:   ESTE PROGRAMA LEE FICHERO DE EMPLEADO Y GRABA NUE- *
+      *             VO FICHERO A¬ADIENDO EL DPTO Y EL SALARIO          *
+      *             DEPENDIENDO DEL CODIGO DE EMPLEADO.                *
+      *             SI EL CODIGO DE EMPLEADO ES <= 9                   *
+      *                MOVER 1 AL DPTO          Y 16001 AL SALARIO     *
+      *             SINO                                               *
+      *             SI EL CODIGO DE EMPLEADO ES >=10 Y <=14            *
+      *                MOVER 2 AL DPTO          Y 17007 AL SALARIO     *
+      *             SINO                                               *
+      *             SI EL CODIGO DE EMPLEADO ES >14                    *
+      *                MOVER 3 AL DPTO          Y 18500 AL SALARIO     *
+      *             FIN-SI                                             *
+      * TYPE:       BATCH/COPY                                         *
+      * INPUTS:     DATOS DEL SISTEMA (FECHA Y HORA)                   *
+      *             DATOS DE SYSIN (TITULO)                            *
+      *             FICHERO DE ENTRADA SECUENCIAL -EMPLEADO-:          *
+      *                     T9716.T9716XX.ZENT307.EMPLEADO             *
+      *                     T9716.X.ZENT307.EMPLEADO                   *
+      * OUTPUTS:    FICHERO DE SALIDA SECUENCIAL -EMPLEADO-:           *
+      *                     T9716.T9716XX.ZSAL308.EMPLEADO             *
+      ******************************************************************
+
+      ******************************************************************
+      *                    IDENTIFIATION DIVISION                      *
+      ******************************************************************
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB32C308.
+       AUTHOR. LUIS.
+       DATE-WRITTEN. ENERO, 2024.
+       DATE-COMPILED.
+
+      ******************************************************************
+      *                    ENVIRONMENT DIVISION                        *
+      ******************************************************************
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+
+       SPECIAL-NAMES.
+            DECIMAL-POINT IS COMMA.
+
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+
+      ******************************************************************
+      *                    INPUT FILE                                  *
+      *-----------------------------------------------------------------
+      * FICHERO DE EMPLEADO  *
+      ******************************************************************
+           SELECT EMPLEADO
+             ASSIGN TO ENTJCL
+             ORGANIZATION IS SEQUENTIAL
+             ACCESS MODE IS SEQUENTIAL
+             FILE STATUS IS FS-EMPLEADO.
+      ******************************************************************
+      *                    OUTPUT FILE                                 *
+      *-----------------------------------------------------------------
+      * FICHERO DE SALIDA                                              *
+      ******************************************************************
+           SELECT SALIDA
+             ASSIGN TO SALJCL
+             ORGANIZATION IS SEQUENTIAL
+             ACCESS MODE IS SEQUENTIAL
+             FILE STATUS IS FS-SALIDA.
+
+      ******************************************************************
+      *                    DATA DIVISION                          ******
+      ******************************************************************
+       DATA DIVISION.
+       FILE SECTION.
+       FD EMPLEADO
+              LABEL RECORDS ARE STANDARD
+              RECORDING MODE IS F
+              BLOCK CONTAINS 0 RECORDS
+              RECORD CONTAINS 100 CHARACTERS
+              DATA RECORD IS REG-EMPLEADO.
+       01 REG-EMPLEADO                   PIC X(100).
+
+       FD SALIDA
+              LABEL RECORDS ARE STANDARD
+              RECORDING MODE IS F
+              BLOCK CONTAINS 0 RECORDS
+              RECORD CONTAINS 100 CHARACTERS
+              DATA RECORD IS REG-SALIDA.
+       01 REG-SALIDA                     PIC X(100).
+
+      ******************************************************************
+      *                     WORKING-STORAGE SECTION                    *
+      ******************************************************************
+       WORKING-STORAGE SECTION.
+       01 WORK-AREA.
+      ******************************************************************
+      *                     RECORD LAYOUT                              *
+      *----------------------------------------------------------------*
+          05 WS-IN-REG-EMPLEADO.
+             10 WS-IN-CODIGO             PIC 9(5)    VALUE ZEROES.
+             10 WS-IN-NOMBRE             PIC X(20)   VALUE SPACES.
+             10 WS-IN-CPOSTAL            PIC 9(5)    VALUE ZEROES.
+             10 WS-IN-CALLE              PIC X(20)   VALUE SPACES.
+             10 FILLER                   PIC X(50)   VALUE SPACES.
+          05 E-CODIGO                    PIC ZZZZ9   VALUE ZEROS.
+          05 WS-OU-REG-SALIDA.
+             10 WS-OU-CODIGO             PIC 9(5)    VALUE ZEROS.
+             10 WS-OU-NOMBRE             PIC X(20)   VALUE SPACES.
+             10 WS-OU-CPOSTAL            PIC 9(5)    VALUE ZEROS.
+             10 WS-OU-CALLE              PIC X(20)   VALUE SPACES.
+             10 WS-OU-DEPAR              PIC 9(4)    VALUE ZEROS.
+             10 WS-OU-SALARIO            PIC S9(7)V9(2) COMP-3
+                                                     VALUE ZEROS.
+             10 WS-OU-SALARIO2           PIC 9(5)    VALUE ZEROS.
+             10 FILLER                   PIC X(36)   VALUE SPACES.
+          05 E-DEPAR                     PIC ZZZ9    VALUE ZEROS.
+          05 E-SALARIO                   PIC ZZZZZZZ.ZZ VALUE ZEROS.
+      ******************************************************************
+      *                     FILE STATUS                                *
+      ******************************************************************
+          05 FS-EMPLEADO                 PIC 99      VALUE ZEROS.
+          05 FS-SALIDA                   PIC 99      VALUE ZEROS.
+      ******************************************************************
+      *                     FLAGS AND SWITCHES                         *
+      ******************************************************************
+          05 END-OF-FILE-SWITCH          PIC X       VALUE 'N'.
+             88  END-OF-FILE                         VALUE 'Y'.
+             88  NOT-END-OF-FILE                     VALUE 'N'.
+
+          05 EMPTY-FILE-SWITCH           PIC X       VALUE 'N'.
+             88 EMPTY-FILE                           VALUE 'Y'.
+
+          05 ERRORES-SWITCH              PIC X       VALUE 'N'.
+             88 ERRORES                              VALUE 'Y'.
+
+      ******************************************************************
+      *                     COUNTERS AND ACCUMULATORS                  *
+      ******************************************************************
+          05  CTR-LEIDOS                 PIC S9(9) COMP-3 VALUE ZEROS.
+          05  CTR-GRABADOS               PIC S9(9) COMP-3 VALUE ZEROS.
+      ******************************************************************
+      *                     CONSTANTS AND LITERALS                     *
+      ******************************************************************
+          05  CTE-1                      PIC 9       VALUE 1.
+          05  CTE-2                      PIC 9       VALUE 2.
+          05  CTE-3                      PIC 9       VALUE 3.
+          05  CTE-9                      PIC 9       VALUE 9.
+          05  CTE-10                     PIC 9(2)    VALUE 10.
+          05  CTE-14                     PIC 9(2)    VALUE 14.
+          05  CTE-15                     PIC 9(2)    VALUE 15.
+          05  CTE-29                     PIC 9(2)    VALUE 29.
+          05  CTE-30                     PIC 9(2)    VALUE 30.
+          05  CTE-34                     PIC 9(2)    VALUE 34.
+          05  CTE-35                     PIC 9(2)    VALUE 35.
+          05  CTE-1001                   PIC 9(4)    VALUE 1001.
+          05  CTE-16001                  PIC 9(5)    VALUE 16001.
+          05  CTE-17007                  PIC 9(5)    VALUE 17007.
+          05  CTE-18500                  PIC 9(5)    VALUE 18500.
+          05  CTE-GUIONES                PIC X(70)   VALUE ALL '='.
+      ******************************************************************
+      *                     VARIABLES NORMALES                         *
+      ******************************************************************
+          05  AUX-PROGRAMA               PIC X(8)    VALUE 'PB32C308'.
+          05  AUX-FECHA.
+              10  AUX-ANYO               PIC 9(4)    VALUE ZERO.
+              10  AUX-MES                PIC 9(2)    VALUE ZERO.
+              10  AUX-DIA                PIC 9(2)    VALUE ZERO.
+
+          05  AUX-HOR.
+              10  AUX-HORA               PIC 9(2)    VALUE ZERO.
+              10  AUX-MINUTO             PIC 9(2)    VALUE ZERO.
+              10  AUX-SEGUNDO            PIC 9(2)    VALUE ZERO.
+              10  AUX-MILI               PIC 9(2)    VALUE ZERO.
+
+      ******************************************************************
+      *                    PROCEDURE DIVISION                          *
+      ******************************************************************
+       PROCEDURE DIVISION.
+
+      ******************************************************************
+      *                    1000-MAINLINE                               *
+      *----------------------------------------------------------------*
+      * ESTE PARRAFO CONTROLA LA ESTRUCTURA DEL PROCESO DEL PROGRAMA   *
+      ******************************************************************
+       1000-MAIN.
+           PERFORM 2000-INICIAL
+              THRU 2000-INICIAL-EXIT.
+
+           PERFORM 3000-PROCESO
+              THRU 3000-PROCESO-EXIT
+             UNTIL END-OF-FILE
+                OR ERRORES.
+           PERFORM 8000-FINAL
+              THRU 8000-FINAL-EXIT.
+
+           STOP RUN.
+
+      ******************************************************************
+      *                    2000-INICIO.                                *
+      ******************************************************************
+       2000-INICIAL.
+           ACCEPT AUX-FECHA FROM DATE YYYYMMDD.
+           ACCEPT AUX-HOR   FROM TIME.
+
+           DISPLAY 'COMIENZA EL PROGRAMA ' AUX-PROGRAMA.
+           DISPLAY ' FECHA: ' AUX-ANYO '-' AUX-MES '-' AUX-DIA
+                   ' HORA: '  AUX-HORA ':' AUX-MINUTO ':' AUX-SEGUNDO
+                   ':' AUX-MILI.
+              DISPLAY ' '.
+              DISPLAY 'CODIGO '   '     NOMBRE'
+                      '              DEPARTAMENTO' '  SALARIO'.
+
+           SET NOT-END-OF-FILE TO TRUE.
+
+           OPEN INPUT EMPLEADO
+               OUTPUT SALIDA.
+
+           IF FS-EMPLEADO NOT EQUAL TO ZEROS
+              DISPLAY 'ERROR AL ABRIR EMPLEADO. FS= ' FS-EMPLEADO
+              SET ERRORES TO TRUE
+           END-IF.
+
+           IF FS-SALIDA NOT EQUAL TO ZEROS
+              DISPLAY 'ERROR AL ABRIR EMPLEADO. FS= ' FS-SALIDA
+              SET ERRORES TO TRUE
+           END-IF.
+
+           PERFORM 9000-LEER
+              THRU 9000-LEER-EXIT.
+
+           IF END-OF-FILE
+              SET EMPTY-FILE TO TRUE
+           END-IF.
+
+       2000-INICIAL-EXIT.
+           EXIT.
+
+      ******************************************************************
+      *                    3000-PROCESO                                *
+      ******************************************************************
+       3000-PROCESO.
+           PERFORM 3100-ASIGNAR
+              THRU 3100-ASIGNAR-EXIT.
+           DISPLAY E-CODIGO '    '  WS-IN-NOMBRE ' '    E-DEPAR '      '
+                  '  '  E-SALARIO.
+           WRITE REG-SALIDA FROM WS-OU-REG-SALIDA.
+
+           IF FS-SALIDA EQUAL TO ZEROS
+              ADD CTE-1 TO CTR-GRABADOS
+
+           ELSE
+              DISPLAY ' ERROR AL GRABAR SALIDA ' FS-SALIDA
+
+              SET ERRORES TO TRUE
+           END-IF.
+
+           PERFORM 9000-LEER
+              THRU 9000-LEER-EXIT.
+
+       3000-PROCESO-EXIT.
+           EXIT.
+
+       3100-ASIGNAR.
+      *SI SON IGUALES LONG MOVE WS-IN-REG-EMPLEADO TO WS-OU-REG-SALIDA.
+           MOVE WS-IN-CODIGO       TO WS-OU-CODIGO.
+           MOVE WS-IN-NOMBRE       TO WS-OU-NOMBRE.
+           MOVE WS-IN-CPOSTAL      TO WS-OU-CPOSTAL.
+           MOVE WS-IN-CALLE        TO WS-OU-CALLE.
+           MOVE WS-IN-CODIGO       TO E-CODIGO.
+           IF WS-IN-CODIGO LESS THAN CTE-30
+              MOVE CTE-1   TO WS-OU-DEPAR
+              MOVE CTE-16001 TO WS-OU-SALARIO
+           ELSE
+              IF WS-IN-CODIGO GREATER THAN CTE-29 AND
+                 WS-IN-CODIGO LESS THAN CTE-35
+                 MOVE CTE-2     TO WS-OU-DEPAR
+                 MOVE CTE-17007 TO WS-OU-SALARIO
+              ELSE
+                 MOVE CTE-3     TO WS-OU-DEPAR
+                 MOVE CTE-18500 TO WS-OU-SALARIO
+              END-IF
+           END-IF.
+           MOVE WS-OU-SALARIO TO WS-OU-SALARIO2.
+           MOVE WS-OU-DEPAR TO E-DEPAR.
+           MOVE WS-OU-SALARIO TO E-SALARIO.
+       3100-ASIGNAR-EXIT.
+           EXIT.
+      ******************************************************************
+      *                    8000-FINAL                                  *
+      ******************************************************************
+       8000-FINAL.
+           IF EMPTY-FILE
+              DISPLAY 'FICHERO EMPLEADO VACIO.'
+           ELSE
+              IF ERRORES
+                 DISPLAY '// ==================//'
+                 DISPLAY '// ------------------//'
+                 DISPLAY '// EJECUCION NO CORRECTA //'
+                 DISPLAY '// ------------------//'
+                 DISPLAY '// ==================//'
+
+                 MOVE CTE-1001 TO RETURN-CODE
+              ELSE
+                 CLOSE EMPLEADO
+                 CLOSE SALIDA
+              END-IF
+           END-IF.
+           DISPLAY CTE-GUIONES.
+           DISPLAY 'LEIDOS EMPLEADO: ' CTR-LEIDOS.
+           DISPLAY 'GRABADOS SALIDA: ' CTR-GRABADOS.
+           DISPLAY 'FIN DEL PROGRAMA: ' AUX-PROGRAMA.
+
+       8000-FINAL-EXIT.
+           EXIT.
+      ******************************************************************
+      *                    9000-LEER                                   *
+      *----------------------------------------------------------------*
+      ******************************************************************
+      *                    LECTURA DEL FICHERO                         *
+      ******************************************************************
+        9000-LEER.
+            READ EMPLEADO INTO WS-IN-REG-EMPLEADO
+               AT END
+                   SET END-OF-FILE TO TRUE
+               NOT AT END
+                   ADD CTE-1 TO CTR-LEIDOS
+            END-READ.
+        9000-LEER-EXIT.
+            EXIT.

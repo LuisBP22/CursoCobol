@@ -1,0 +1,28 @@
+//T971632E JOB 'COMPILA-COBOL','T971632-EXEC01',CLASS=A,MSGCLASS=X,     00010001
+//             NOTIFY=&SYSUID,COND=(4,LT)                               00020001
+//*=================================================================    00030001
+//*   AQUI DEBAJO SE ENVIA A EJECUTAR SI NO HAY ERRORES DE COMPILAR     00040001
+//*=================================================================    00050001
+//EXEPGM   EXEC  PGM=PB32C302,TIME=(,3)                                 00060002
+//STEPLIB   DD   DSN=T9716.T971632.LOAD,DISP=SHR                        00070001
+//SYSPRINT  DD   SYSOUT=*,OUTLIM=200                                    00080001
+//*-----------------------------------------------------------------    00090001
+//*     PONER AQUI DEBAJO LOS FICHEROS DE MI PROGRAMA                   00100001
+//*-----------------------------------------------------------------    00110001
+//**FCIUDAD   DD   DSN=T9716.T971632.FCIUDAD,DISP=SHR                   00120001
+//**LCIUDAD   DD   SYSOUT=*,OUTLIM=300                                  00130001
+//*-----------------------------------------------------------------    00140001
+//*     PONER AQUI DEBAJO LA SYSIN  DE MI PROGRAMA                      00150001
+//*-----------------------------------------------------------------    00160001
+//SYSIN DD *                                                            00170001
+'TITULO'                                                                00171001
+'LUNES'                                                                 00171101
+'MARTES'                                                                00171201
+'MIERCOLES'                                                             00171301
+'JUEVES'                                                                00171401
+'VIERNES'                                                               00171501
+'SABADO'                                                                00171601
+'DOMINGO'                                                               00171701
+'LUNESSSS'                                                              00171804
+/*                                                                      00172001
+//                                                                      00173001

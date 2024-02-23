@@ -1,0 +1,7 @@
+      CREATE VIEW VEMPLETOP AS                                          00030000
+           SELECT *                                                     00040000
+           FROM EMPLEADO                                                00050000
+           WHERE EMP_SALARIO > (SELECT AVG(EMP_SALARIO)                 00060000
+                                FROM EMPLEADO);                         00070000
+                                                                        00080000
+                                                                        00090000

@@ -1,0 +1,119 @@
+                                                                        00010000
+      ******************************************************************00020000
+      *                    IDENTIFIATION DIVISION                      *00030000
+      ******************************************************************00040000
+       IDENTIFICATION DIVISION.                                         00050000
+       PROGRAM-ID. PB0XDNI.                                             00060000
+       AUTHOR. LUIS.                                                    00070000
+       DATE-WRITTEN. ENERO, 2024.                                       00080000
+       DATE-COMPILED.                                                   00090000
+                                                                        00100000
+      ******************************************************************00110000
+      *                    ENVIRONMENT DIVISION                        *00120000
+      ******************************************************************00130000
+       ENVIRONMENT DIVISION.                                            00140000
+       CONFIGURATION SECTION.                                           00150000
+                                                                        00160000
+       SPECIAL-NAMES.                                                   00170000
+            DECIMAL-POINT IS COMMA.                                     00180000
+                                                                        00190000
+       INPUT-OUTPUT SECTION.                                            00200000
+       FILE-CONTROL.                                                    00210000
+                                                                        00220000
+      ******************************************************************00230000
+      *                    DATA DIVISION                         *      00240000
+      ******************************************************************00250000
+       DATA DIVISION.                                                   00260000
+       FILE SECTION.                                                    00270000
+                                                                        00280000
+       WORKING-STORAGE SECTION.                                         00290000
+       01 WORK-AREA.                                                    00300000
+      ******************************************************************00301001
+      *                    COM AREA                                    *00302001
+      ******************************************************************00303001
+          05  COM-AREA.                                                 00304001
+              10 COM-DNI.                                               00305001
+                 15 NUMS                 PIC 9(8)    VALUE ZEROS.       00306007
+                 15 LETRA                PIC X(1)    VALUE SPACES.      00307001
+              10 ESPACIOS                PIC X(2)    VALUE SPACES.      00308005
+      ******************************************************************00309001
+          05  LETRAS        PIC X(23)   VALUE 'TRWAGMYFPDXBNJZSQVHLCKE'.00309101
+          05  TBL-LETRAS      REDEFINES LETRAS PIC X(1) OCCURS 23 TIMES.00309202
+          05  AUX-PROGRAMA               PIC X(8)    VALUE 'PB0XMDNI'.  00310000
+          05  AUX-FECHA.                                                00320000
+              10  AUX-ANYO               PIC 9(4)    VALUE ZERO.        00330000
+              10  AUX-MES                PIC 9(2)    VALUE ZERO.        00340000
+              10  AUX-DIA                PIC 9(2)    VALUE ZERO.        00350000
+                                                                        00360000
+          05  AUX-HOR.                                                  00370000
+              10  AUX-HORA               PIC 9(2)    VALUE ZERO.        00380000
+              10  AUX-MINUTO             PIC 9(2)    VALUE ZERO.        00390000
+              10  AUX-SEGUNDO            PIC 9(2)    VALUE ZERO.        00400000
+              10  AUX-MILI               PIC 9(2)    VALUE ZERO.        00410000
+                                                                        00420000
+          05  AUX-RESTO                  PIC 9(1)    VALUE ZERO.        00420102
+          05  AUX-COCIENTE               PIC 9(2)    VALUE ZERO.        00420202
+          05  CTE-23                     PIC 9(2)    VALUE 23.          00420302
+      ******************************************************************00421002
+      *                    LINKAGE SECTION                             *00422002
+      ******************************************************************00423002
+       LINKAGE SECTION.                                                 00424002
+          01 LK-DATOS                       PIC X(11).                  00425002
+      ******************************************************************00430000
+      *                    PROCEDURE DIVISION                          *00440000
+      ******************************************************************00450000
+       PROCEDURE DIVISION USING LK-DATOS.                               00460002
+                                                                        00470000
+      ******************************************************************00480000
+      *                    1000-MAINLINE                               *00490000
+      *----------------------------------------------------------------*00500000
+      * ESTE PARRAFO CONTROLA LA ESTRUCTURA DEL PROCESO DEL PROGRAMA   *00510000
+      ******************************************************************00520000
+       1000-MAIN.                                                       00530000
+           PERFORM 2000-INICIAL                                         00540000
+              THRU 2000-INICIAL-EXIT.                                   00550000
+                                                                        00560000
+           PERFORM 3000-PROCESO                                         00570000
+              THRU 3000-PROCESO-EXIT.                                   00580000
+                                                                        00590000
+           PERFORM 8000-FINAL                                           00600000
+              THRU 8000-FINAL-EXIT.                                     00610000
+                                                                        00620000
+           GOBACK.                                                      00630006
+                                                                        00640000
+      ******************************************************************00650000
+      *                    2000-INICIO.                                *00660000
+      ******************************************************************00670000
+       2000-INICIAL.                                                    00680000
+           DISPLAY 'COMIENZA EL MODULO PB0XMDNI'.                       00760002
+           MOVE LK-DATOS TO COM-AREA.                                   00761005
+       2000-INICIAL-EXIT.                                               00770000
+           EXIT.                                                        00780000
+                                                                        00790000
+      ******************************************************************00800000
+      *                    3000-PROCESO                                *00810000
+      ******************************************************************00820000
+       3000-PROCESO.                                                    00830000
+           PERFORM 3100-OBTENER-LETRA                                   00851002
+               THRU 3100-OBTENER-LETRA-EXIT.                            00852002
+       3000-PROCESO-EXIT.                                               00860000
+           EXIT.                                                        00870000
+       3100-OBTENER-LETRA.                                              00871002
+           DIVIDE NUMS BY CTE-23                                        00872002
+             GIVING AUX-COCIENTE                                        00872102
+             REMAINDER AUX-RESTO                                        00872202
+           END-DIVIDE.                                                  00872302
+           ADD 1 TO AUX-RESTO.                                          00872602
+           MOVE TBL-LETRAS(AUX-RESTO) TO LETRA.                         00873005
+       3100-OBTENER-LETRA-EXIT.                                         00873102
+           EXIT.                                                        00874002
+                                                                        00880000
+      ******************************************************************00890000
+      *                    8000-FINAL                                  *00900000
+      ******************************************************************00910000
+       8000-FINAL.                                                      00920000
+           MOVE COM-AREA TO LK-DATOS.                                   00921005
+           DISPLAY 'FIN DEL PROGRAMA: ' AUX-PROGRAMA.                   00930000
+                                                                        00940000
+       8000-FINAL-EXIT.                                                 00950000
+           EXIT.                                                        00960000

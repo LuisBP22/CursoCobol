@@ -1,0 +1,160 @@
+      ******************************************************************
+      * NOM. DESCR: INFORMATION REPORT PROGRAM: VERIFICA CUENTA BANCO. *
+      * OBJETIVE:   ESTE PROGRAMA RECOGE DE LA SYSIN LA CUENTA         *
+      *             BANCARIA (20 DIGITOS) Y LLAMA AL MODULO -PB0YMCC-  *
+      *             DEVUELVE LOS DOS DIGITOS DE CONTROL.               *
+      *             COMPARA EL DIGITO DE CONTROL DE LA SYSIN CON       *
+      *             DIGITO DE CONTROL DEL MODULO. SI ES IGUAL MUESTRA  *
+      *             'DIGITO DE CONTROL OK', SI NO MUESTRA 'ERROR EN EL *
+      *             DIGITO DE CONTROL.                                 *
+      * TYPE:       BATCH REPORT EDIT                                  *
+      * INPUTS:     SYSTEM,SYSIN (CUENTA BANCARIA)                     *
+      * OUTPUTS:    REPORT EN SYSOUT                                   *
+      ******************************************************************
+
+      ******************************************************************
+      *                    IDENTIFIATION DIVISION                      *
+      ******************************************************************
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB32C311.
+       AUTHOR. LUIS.
+       DATE-WRITTEN. ENERO, 2024.
+       DATE-COMPILED.
+
+      ******************************************************************
+      *                    ENVIRONMENT DIVISION                        *
+      ******************************************************************
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+
+       SPECIAL-NAMES.
+            DECIMAL-POINT IS COMMA.
+
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+
+      ******************************************************************
+      *                    DATA DIVISION                         *
+      ******************************************************************
+       DATA DIVISION.
+       FILE SECTION.
+
+       WORKING-STORAGE SECTION.
+       01 WORK-AREA.
+      ******************************************************************
+      *                    CONSTANTS AND LITERALS                      *
+      ******************************************************************
+          05  CTE-MODULO                 PIC X(08)   VALUE 'PB0YMCC'.
+          05  CTE-1001                   PIC 9(04)   VALUE 1001.
+          05  AUX-PROGRAMA               PIC X(8)    VALUE 'PB32C311'.
+      ******************************************************************
+          05  AUX-DC                     PIC 9(2)    VALUE ZEROS.
+          05  AUX-FECHA.
+              10  AUX-ANYO               PIC 9(4)    VALUE ZERO.
+              10  AUX-MES                PIC 9(2)    VALUE ZERO.
+              10  AUX-DIA                PIC 9(2)    VALUE ZERO.
+
+          05  AUX-HOR.
+              10  AUX-HORA               PIC 9(2)    VALUE ZERO.
+              10  AUX-MINUTO             PIC 9(2)    VALUE ZERO.
+              10  AUX-SEGUNDO            PIC 9(2)    VALUE ZERO.
+              10  AUX-MILI               PIC 9(2)    VALUE ZERO.
+
+      ******************************************************************
+      *                    COMUNICATION AREA                           *
+      ******************************************************************
+          05 COM-AREA.
+             10 COM-CC.
+                15 COM-CC-OFI                  PIC 9(4)   VALUE ZEROS.
+                15 COM-CC-SUC                  PIC 9(4)   VALUE ZEROS.
+                15 COM-CC-DC                   PIC 9(2)   VALUE ZEROS.
+                15 COM-CC-CUE                  PIC 9(10)  VALUE ZEROS.
+
+             10 COM-CODIGO-RETORNO             PIC X(2)   VALUE SPACES.
+      ******************************************************************
+      *                    PROCEDURE DIVISION                          *
+      ******************************************************************
+       PROCEDURE DIVISION.
+
+      ******************************************************************
+      *                    1000-MAINLINE                               *
+      *----------------------------------------------------------------*
+      * ESTE PARRAFO CONTROLA LA ESTRUCTURA DEL PROCESO DEL PROGRAMA   *
+      ******************************************************************
+       1000-MAIN.
+           PERFORM 2000-INICIAL
+              THRU 2000-INICIAL-EXIT.
+
+           PERFORM 3000-PROCESO
+              THRU 3000-PROCESO-EXIT.
+
+           PERFORM 8000-FINAL
+              THRU 8000-FINAL-EXIT.
+
+           STOP RUN.
+
+      ******************************************************************
+      *                    2000-INICIO.                                *
+      ******************************************************************
+       2000-INICIAL.
+           ACCEPT AUX-FECHA FROM DATE YYYYMMDD.
+           ACCEPT AUX-HOR   FROM TIME.
+
+           DISPLAY 'COMIENZA EL PROGRAMA ' AUX-PROGRAMA.
+           DISPLAY ' FECHA: ' AUX-ANYO '-' AUX-MES '-' AUX-DIA
+                   ' HORA: '  AUX-HORA ':' AUX-MINUTO ':' AUX-SEGUNDO
+                   ':' AUX-MILI.
+
+       2000-INICIAL-EXIT.
+           EXIT.
+
+      ******************************************************************
+      *                    3000-PROCESO                                *
+      ******************************************************************
+       3000-PROCESO.
+           ACCEPT COM-CC FROM SYSIN.
+               IF COM-CC GREATER THAN ZEROS
+                 PERFORM 3100-LLAMAR-MODULO-CC
+                    THRU 3100-LLAMAR-MODULO-CC-EXIT
+               ELSE
+                 DISPLAY 'ERROR: LA CUENTA DE SYSIN DEBE SER > 0.'
+                 MOVE CTE-1001 TO RETURN-CODE
+               END-IF.
+       3000-PROCESO-EXIT.
+           EXIT.
+
+       3100-LLAMAR-MODULO-CC.
+           MOVE COM-CC-DC TO AUX-DC.
+
+           CALL CTE-MODULO
+             USING COM-AREA
+             ON EXCEPTION
+                DISPLAY '*** ERROR: MODULO PB0YMCC NO COMPILADO. ***'
+                MOVE CTE-1001 TO RETURN-CODE
+
+             NOT ON EXCEPTION
+                 IF COM-CODIGO-RETORNO EQUAL TO SPACES
+                    IF AUX-DC EQUAL TO COM-CC-DC
+                       DISPLAY 'CUENTA BANCARIA CORRECTA: '
+                           COM-CC-OFI ' ' COM-CC-SUC ' '
+                           COM-CC-DC  ' ' COM-CC-CUE
+                    ELSE
+                       DISPLAY 'CUENTA BANCARIA ERRONEA: '
+                           COM-CC-OFI ' ' COM-CC-SUC ' '
+                           COM-CC-DC  ' ' COM-CC-CUE
+                    END-IF
+                ELSE
+                   DISPLAY 'ERROR EN EL MODULO= ' CTE-MODULO
+
+                   MOVE CTE-1001 TO RETURN-CODE
+                END-IF.
+       3100-LLAMAR-MODULO-CC-EXIT.
+                EXIT.
+      ******************************************************************
+      *                    8000-FINAL                                  *
+      ******************************************************************
+       8000-FINAL.
+           DISPLAY 'FIN DEL PROGRAMA: ' AUX-PROGRAMA.
+
+       8000-FINAL-EXIT.
+           EXIT.
